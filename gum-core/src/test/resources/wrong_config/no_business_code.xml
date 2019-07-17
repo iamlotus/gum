@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--for app1.odd-->
+<BusinessTemplateConfig>
+    <BusinessCodes>
+    </BusinessCodes>
+
+    <!--业务模板，必须有且只有一个 -->
+    <BusinessTemplate code="jinlo.gum.core.testapps.app1.business1.Business1"/>
+</BusinessTemplateConfig>

@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--for app1.odd-->
+<BusinessTemplateConfig>
+    <BusinessCodes>
+        <BusinessCode>sample.code1</BusinessCode>
+        <BusinessCode>sample.code2</BusinessCode>
+    </BusinessCodes>
+
+    <!--业务模板，必须有且只有一个 -->
+    <BusinessTemplate code="jinlo.gum.core.testapps.app1.business1.Business1"/>
+
+    <SystemTemplates>
+        <!--系统模板，可以有0-N个 -->
+        <SystemTemplate code="jinlo.gum.core.testapps.app1.system1.System1"/>
+        <SystemTemplate code="jinlo.gum.core.testapps.app1.system2.System2"/>
+    </SystemTemplates>
+
+    <!--自定义扩展点实现的顺序，如果某个扩展点有超过一个实现，可以不指定顺序(默认随机)，但如果指定了顺序，必须指定所有实现的顺序
+     不允许出现仅仅指定若干实现的顺序。这里所有的实现必须位于其上指定的业务/产品中。-->
+    <Order>
+        <Extension code="jinlo.gum.core.testapps.app1.domain1.Ext11">
+            <ExtensionFacade code="jinlo.gum.core.testapps.app1.system1.S1Facade1"/>
+            <ExtensionFacade code="jinlo.gum.core.testapps.app1.system2.S2Facade1"/>
+            <ExtensionFacade code="jinlo.gum.core.testapps.app1.system2.S2Facade2"/>
+            <ExtensionFacade code="jinlo.gum.core.testapps.app1.business1.B1Facade1"/>
+            <ExtensionFacade code="jinlo.gum.core.testapps.app1.business1.B1Facade2"/>
+        </Extension>
+
+        <!--<Extension code="Ext12">-->
+            <!--<ExtensionFacade code="S1Facade1"/>-->
+            <!--<ExtensionFacade code="B1Facade1"/>-->
+        <!--</Extension>-->
+    </Order>
+</BusinessTemplateConfig>

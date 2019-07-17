@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--for app1.odd-->
+<BusinessTemplateConfig>
+    <BusinessCodes>
+        <BusinessCode>demo3</BusinessCode>
+    </BusinessCodes>
+
+    <!--业务模板，必须有且只有一个 -->
+    <BusinessTemplate code="jinlo.gum.core.testapps.app3.Business"/>
+
+    <SystemTemplates>
+        <!--系统模板，可以有0-N个 -->
+        <SystemTemplate code="jinlo.gum.core.testapps.app3.System"/>
+    </SystemTemplates>
+
+    <!--自定义扩展点实现的顺序，如果某个扩展点有超过一个实现，可以不指定顺序(默认随机)，但如果指定了顺序，必须指定所有实现的顺序
+     不允许出现仅仅指定若干实现的顺序。这里所有的实现必须位于其上指定的业务/产品中。-->
+    <Order>
+        <Extension code="jinlo.gum.core.testapps.app3.Ext1">
+            <ExtensionFacade code="jinlo.gum.core.testapps.app3.BusinessFacade"/>
+            <ExtensionFacade code="jinlo.gum.core.testapps.app3.SystemFacade"/>
+        </Extension>
+    </Order>
+</BusinessTemplateConfig>
