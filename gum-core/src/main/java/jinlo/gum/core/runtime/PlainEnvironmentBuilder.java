@@ -213,8 +213,8 @@ public class PlainEnvironmentBuilder implements EnvironmentBuilder {
         Map<Class<?>, Annotations> clz2Annotations = new HashMap<>();
 
         for (ClassPath.Resource resource : cp.getResources()) {
-            if (resource.isClassResource()) {
-                String className = resource.getResourceName();
+            if (resource.isClass()) {
+                String className = resource.getClassName();
                 if (!matcher.match(className)) {
                     LOGGER.trace("ignore {} because the package name does not match requirement", className);
                     continue;
@@ -222,7 +222,7 @@ public class PlainEnvironmentBuilder implements EnvironmentBuilder {
 
                 Class<?> clz;
                 try {
-                    clz = loader.loadClass(className);
+                    clz = resource.getClassLoader().loadClass(className);
                 } catch (ClassNotFoundException e) {
                     throw new RuntimeException(e);
                 }
