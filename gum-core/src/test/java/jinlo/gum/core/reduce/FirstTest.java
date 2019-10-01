@@ -4,21 +4,21 @@ import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.stream.Stream;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 
 public class FirstTest {
 
     @Test
-    public void name() {
-    }
-
-    @Test
+    @SuppressWarnings("unchecked")
     public void testReduce(){
-        assertEquals(null,Reducers.first().reduce(null));
-        assertEquals(null,Reducers.first().reduce(new ArrayList().stream()));
-        assertEquals("a",Reducers.<String>first().reduce(Arrays.asList("a").stream()));
-        assertEquals("a",Reducers.<String>first().reduce(Arrays.asList("a","b").stream()));
+        assertNull(Reducers.first().reduce(null));
+        assertNull(Reducers.first().reduce(new ArrayList().stream()));
+        assertEquals("a",Reducers.<String>first().reduce(Stream.of("a")));
+        assertEquals("a",Reducers.<String>first().reduce(Stream.of("a","b")));
     }
 
 }

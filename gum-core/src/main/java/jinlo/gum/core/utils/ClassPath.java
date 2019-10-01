@@ -59,7 +59,7 @@ public class ClassPath {
             return url;
         }
 
-        public final ClassLoader getClassLoader(){
+        public final ClassLoader getClassLoader() {
             return this.loader;
         }
 
@@ -75,11 +75,11 @@ public class ClassPath {
         }
 
         public final String getClassName() {
-            if (!isClass()){
+            if (!isClass()) {
                 throw new IllegalArgumentException();
-            }else {
-                String className= resourceName.substring(0,resourceName.length()- CLASS_FILE_NAME_EXTENSION.length());
-                return className.replace("/",".");
+            } else {
+                String className = resourceName.substring(0, resourceName.length() - CLASS_FILE_NAME_EXTENSION.length());
+                return className.replace("/", ".");
             }
         }
 
@@ -147,8 +147,8 @@ public class ClassPath {
         }
     }
 
-    static Map<File, ClassLoader> getClassPathEntries(ClassLoader classloader) {
-        LinkedHashMap<File, ClassLoader> entries = new LinkedHashMap();
+    private static Map<File, ClassLoader> getClassPathEntries(ClassLoader classloader) {
+        LinkedHashMap<File, ClassLoader> entries = new LinkedHashMap<>();
         // Search parent first, since it's the order ClassLoader#loadClass() uses.
         ClassLoader parent = classloader.getParent();
         if (parent != null) {
@@ -195,7 +195,7 @@ public class ClassPath {
         return urls;
     }
 
-    final void scan(File file, ClassLoader classloader) throws IOException {
+    private void scan(File file, ClassLoader classloader) throws IOException {
         if (scannedUris.add(file.getCanonicalFile())) {
             scanFrom(file, classloader);
         }
@@ -239,7 +239,7 @@ public class ClassPath {
         }
     }
 
-    protected void scanJarFile(ClassLoader classloader, JarFile file) {
+    private void scanJarFile(ClassLoader classloader, JarFile file) {
         Enumeration<JarEntry> entries = file.entries();
         while (entries.hasMoreElements()) {
             JarEntry entry = entries.nextElement();
@@ -250,7 +250,7 @@ public class ClassPath {
         }
     }
 
-    protected void scanDirectory(ClassLoader classloader, File directory) throws IOException {
+    private void scanDirectory(ClassLoader classloader, File directory) throws IOException {
         Set<File> currentPath = new HashSet<>();
         currentPath.add(directory.getCanonicalFile());
         scanDirectory(directory, classloader, "", currentPath);
@@ -296,18 +296,7 @@ public class ClassPath {
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder();
-        sb.append(getClass().getSimpleName())
-                .append("[")
-                .append(this.resources.size())
-                .append(" resources, ")
-                .append(this.scannedUris.size())
-                .append(" uris")
-                .append(", cost ")
-                .append(scanTime)
-                .append(" ms")
-                .append("]");
-        return sb.toString();
+        return getClass().getSimpleName() + "[" + this.resources.size() + " resources, " + this.scannedUris.size() + " uris, cost" + scanTime + " ms]";
     }
 
 

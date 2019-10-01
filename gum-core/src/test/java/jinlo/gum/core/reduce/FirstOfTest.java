@@ -5,8 +5,10 @@ import org.junit.Test;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Objects;
+import java.util.stream.Stream;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 
 public class FirstOfTest {
 
@@ -15,11 +17,12 @@ public class FirstOfTest {
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     public void testReduce(){
-        assertEquals(null,Reducers.<String>firstOf(Objects::nonNull).reduce(null));
-        assertEquals(null,Reducers.firstOf(Objects::nonNull).reduce(new ArrayList().stream()));
-        assertEquals("a",Reducers.<String>firstOf(Objects::nonNull).reduce(Arrays.asList(null,"a").stream()));
-        assertEquals("a",Reducers.<String>firstOf(Objects::nonNull).reduce(Arrays.asList(null,"a","b").stream()));
+        assertNull(Reducers.<String>firstOf(Objects::nonNull).reduce(null));
+        assertNull(Reducers.firstOf(Objects::nonNull).reduce(new ArrayList().stream()));
+        assertEquals("a",Reducers.<String>firstOf(Objects::nonNull).reduce(Stream.of(null,"a")));
+        assertEquals("a",Reducers.<String>firstOf(Objects::nonNull).reduce(Stream.of(null,"a","b")));
     }
 
 }

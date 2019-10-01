@@ -15,6 +15,8 @@ public class Reducers {
      *
      * @param <T>
      */
+
+    @SuppressWarnings("unchecked")
     public static <T> Reducer<T, List<T>> none() {
         return NONE;
     }
@@ -24,6 +26,7 @@ public class Reducers {
      *
      * @param <T>
      */
+    @SuppressWarnings("unchecked")
     public static <T> Reducer<T, T> first() {
         return FIRST;
     }

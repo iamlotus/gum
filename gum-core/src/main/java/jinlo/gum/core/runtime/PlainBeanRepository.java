@@ -17,6 +17,7 @@ public class PlainBeanRepository implements BeanRepository {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public <T> T getBean(String className) {
         T bean= (T)cache.get(className);
         if (bean==null){

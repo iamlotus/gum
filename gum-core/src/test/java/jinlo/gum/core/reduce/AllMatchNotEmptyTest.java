@@ -6,9 +6,9 @@ import org.junit.Test;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Objects;
+import java.util.stream.Stream;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 public class AllMatchNotEmptyTest {
 
@@ -17,15 +17,16 @@ public class AllMatchNotEmptyTest {
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     public void testReduce() {
         assertFalse( Reducers.<String>allMatchNotEmpty(Objects::nonNull).reduce(null));
         // If the stream is empty return false
         assertFalse( Reducers.allMatchNotEmpty(Objects::nonNull).reduce(new ArrayList().stream()));
-        assertFalse( Reducers.<String>allMatchNotEmpty(Objects::nonNull).reduce(Lists.newArrayList((String)null).stream()));
-        assertFalse( Reducers.<String>allMatchNotEmpty(Objects::nonNull).reduce(Arrays.asList(null,"a").stream()));
-        assertFalse( Reducers.<String>allMatchNotEmpty(Objects::nonNull).reduce(Arrays.asList("a",null).stream()));
-        assertTrue( Reducers.<String>allMatchNotEmpty(Objects::nonNull).reduce(Arrays.asList("a").stream()));
-        assertTrue( Reducers.<String>allMatchNotEmpty(Objects::nonNull).reduce(Arrays.asList("a","b").stream()));
+        assertEquals(false, Reducers.<String>allMatchNotEmpty(Objects::nonNull).reduce(Lists.newArrayList((String) null).stream()));
+        assertFalse( Reducers.<String>allMatchNotEmpty(Objects::nonNull).reduce(Stream.of(null,"a")));
+        assertFalse( Reducers.<String>allMatchNotEmpty(Objects::nonNull).reduce(Stream.of("a",null)));
+        assertTrue( Reducers.<String>allMatchNotEmpty(Objects::nonNull).reduce(Stream.of("a")));
+        assertTrue( Reducers.<String>allMatchNotEmpty(Objects::nonNull).reduce(Stream.of("a","b")));
     }
 
 }

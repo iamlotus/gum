@@ -75,6 +75,7 @@ public class BusinessProcesses {
     /**
      * 在指定业务流程中执行扩展点
      **/
+    @SuppressWarnings("unchecked")
     private static <E, T, R> ExtensionExecuteDetail<R, T> executeExtension0(Object instance, BusinessProcess process, String extensionCode, Reducer<T, R> reducer, ExtensionCallback<E, T> callback,boolean needDetail) {
         Objects.requireNonNull(instance);
         Objects.requireNonNull(process);
@@ -107,21 +108,5 @@ public class BusinessProcesses {
         return details;
     }
 
-    /**
-     * 动态决定业务身份，再执行业务身份对应扩展扩展点。此方法使用于
-     * @param instances
-     * @param process
-     * @param extensionCode
-     * @param reducer
-     * @param callback
-     * @param needDetail
-     * @param <E>
-     * @param <T>
-     * @param <R>
-     * @return
-     */
-    private static <E, T, R> ExtensionExecuteDetail<R, T> executeExtensionByMultipleInstances0(List<?> instances, BusinessProcess process, String extensionCode, Reducer<T, R> reducer, ExtensionCallback<E, T> callback,boolean needDetail) {
-        //TODO
-        return null;
-    }
+
 }

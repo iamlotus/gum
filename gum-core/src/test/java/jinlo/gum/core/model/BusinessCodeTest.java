@@ -1,10 +1,6 @@
 package jinlo.gum.core.model;
 
-import jinlo.gum.core.testapps.app3.Business;
 import org.junit.Test;
-
-import java.util.Arrays;
-import java.util.regex.Pattern;
 
 import static org.junit.Assert.*;
 
