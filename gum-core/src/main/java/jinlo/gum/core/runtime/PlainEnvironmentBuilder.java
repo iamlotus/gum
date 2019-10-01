@@ -4,7 +4,7 @@ package jinlo.gum.core.runtime;
 import jinlo.gum.core.annotation.*;
 import jinlo.gum.core.exception.EnvironmentException;
 import jinlo.gum.core.model.BusinessCodeParser;
-import jinlo.gum.core.model.TemplateChecker;
+import jinlo.gum.core.model.InstanceRecgonizer;
 import jinlo.gum.core.spec.*;
 import jinlo.gum.core.utils.AnnotationUtils;
 import jinlo.gum.core.utils.ClassPath;
@@ -14,6 +14,8 @@ import org.slf4j.LoggerFactory;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * 通过扫描ClassPath中的Annotation创建环境,这里统一采用当前线程的ClassLoader
@@ -59,9 +61,9 @@ public class PlainEnvironmentBuilder implements EnvironmentBuilder {
 
         public static final String EXTENSION_FACADE = "@" + ExtensionFacade.class.getSimpleName();
 
-        public static final String SYSTEM_TEMPLATE = "@" + SystemTemplate.class.getSimpleName();
+        public static final String PRODUCT = "@" + Product.class.getSimpleName();
 
-        public static final String BUSINESS_TEMPLATE = "@" + BusinessTemplate.class.getSimpleName();
+        public static final String BUSINESS = "@" + Business.class.getSimpleName();
 
 
         private Domain domain;
@@ -74,16 +76,16 @@ public class PlainEnvironmentBuilder implements EnvironmentBuilder {
 
         private ExtensionFacade extensionFacade;
 
-        private SystemTemplate systemTemplate;
+        private Product product;
 
-        private BusinessTemplate businessTemplate;
+        private Business business;
 
         public Annotations(Class<?> targetClz) {
             domain = targetClz.getAnnotation(Domain.class);
-            businessTemplate = targetClz.getAnnotation(BusinessTemplate.class);
+            business = targetClz.getAnnotation(Business.class);
             extension = targetClz.getAnnotation(Extension.class);
             extensionFacade = targetClz.getAnnotation(ExtensionFacade.class);
-            systemTemplate = targetClz.getAnnotation(SystemTemplate.class);
+            product = targetClz.getAnnotation(Product.class);
 
             domainFunctions = new HashMap<>();
             domainServices = new HashMap<>();
@@ -112,8 +114,8 @@ public class PlainEnvironmentBuilder implements EnvironmentBuilder {
             return domainServices;
         }
 
-        public BusinessTemplate getBusinessTemplate() {
-            return businessTemplate;
+        public Business getBusiness() {
+            return business;
         }
 
         public Domain getDomain() {
@@ -128,12 +130,12 @@ public class PlainEnvironmentBuilder implements EnvironmentBuilder {
             return extensionFacade;
         }
 
-        public SystemTemplate getSystemTemplate() {
-            return systemTemplate;
+        public Product getProduct() {
+            return product;
         }
 
         public boolean hasAnnotation() {
-            return (!domainFunctions.isEmpty() || !domainServices.isEmpty() || businessTemplate != null || domain != null || extension != null || extensionFacade != null || systemTemplate != null);
+            return (!domainFunctions.isEmpty() || !domainServices.isEmpty() || business != null || domain != null || extension != null || extensionFacade != null || product != null);
         }
 
 
@@ -149,9 +151,9 @@ public class PlainEnvironmentBuilder implements EnvironmentBuilder {
 
         private Set<ExtensionSpec> extensions = new HashSet<>();
 
-        private Set<BusinessTemplateSpec> businesses = new HashSet<>();
+        private Set<BusinessSpec> businesses = new HashSet<>();
 
-        private Set<SystemTemplateSpec> products = new HashSet<>();
+        private Set<ProductSpec> products = new HashSet<>();
 
         @Override
         public Set<DomainSpec> getDomains() {
@@ -174,12 +176,12 @@ public class PlainEnvironmentBuilder implements EnvironmentBuilder {
         }
 
         @Override
-        public Set<BusinessTemplateSpec> getBusinessTemplates() {
+        public Set<BusinessSpec> getBusinesses() {
             return businesses;
         }
 
         @Override
-        public Set<SystemTemplateSpec> getSystemTemplates() {
+        public Set<ProductSpec> getProducts() {
             return products;
         }
 
@@ -243,8 +245,10 @@ public class PlainEnvironmentBuilder implements EnvironmentBuilder {
     }
 
 
-    // 遍历所有带Annotation的类，构建环境，维护其中的双向连接
+    // Iterate all annotated classes, construct environment, maintains bi-relationship
     private Environment buildEnvironment(Map<Class<?>, Annotations> clz2Annotations) {
+
+        Map<TemplateSpec, Set<Class<?>>> templateSpec2FacadeClz=new HashMap<>();
         Map<Class<?>, DomainSpec> clz2DomainSpec = new HashMap<>();
         Map<DomainFunctionSpec, Class<?>> domainFunctionSpec2Domains = new HashMap<>();
         Map<DomainServiceSpec, Class<?>> domainServiceSpec2Domains = new HashMap<>();
@@ -312,30 +316,59 @@ public class PlainEnvironmentBuilder implements EnvironmentBuilder {
             }
 
             // scan template
-            BusinessTemplate businessTemplate = annotations.getBusinessTemplate();
-            SystemTemplate systemTemplate = annotations.getSystemTemplate();
-            if (businessTemplate != null && systemTemplate != null) {
-                String msg = clz + " is " + Annotations.BUSINESS_TEMPLATE + " as well as " + Annotations.SYSTEM_TEMPLATE + ", which is not allowed";
+            Business business = annotations.getBusiness();
+            Product product = annotations.getProduct();
+            if (business != null && product != null) {
+                String msg = clz + " is " + Annotations.BUSINESS + " as well as " + Annotations.PRODUCT + ", which is not allowed";
                 LOGGER.error(msg);
                 throw new EnvironmentException(msg);
-            } else if (businessTemplate != null) {
-                // scan businessTemplate
-                TemplateChecker checker = beanRepository.getBean(businessTemplate.checker().getName());
-                BusinessTemplateSpec businessTemplateSpec = new BusinessTemplateSpec(clz.getName(), businessTemplate.name(), checker);
-                BusinessCodeParser parser = beanRepository.getBean(businessTemplate.parser().getName());
-                businessTemplateSpec.setParser(parser);
-                businessTemplateSpec.setDescription(businessTemplate.desc());
-                clz2TemplateSpec.put(clz, businessTemplateSpec);
-                LOGGER.debug("find {} on class \"{}\"", Annotations.BUSINESS_TEMPLATE, clz);
-            } else if (systemTemplate != null) {
-                // scan systemTemplate
-                TemplateChecker checker = beanRepository.getBean(systemTemplate.checker().getName());
-                SystemTemplateSpec systemTemplateSpec = new SystemTemplateSpec(clz.getName(), systemTemplate.name(), checker);
-                systemTemplateSpec.setDescription(systemTemplate.desc());
-                clz2TemplateSpec.put(clz, systemTemplateSpec);
-                LOGGER.debug("find {} on class \"{}\"", Annotations.SYSTEM_TEMPLATE, clz);
+            } else if (business != null) {
+                // scan business
+                InstanceRecgonizer recgonizer = beanRepository.getBean(business.recgonizer().getName());
+                BusinessSpec businessSpec = new BusinessSpec(clz.getName(), business.name(), recgonizer);
+                BusinessCodeParser parser = beanRepository.getBean(business.parser().getName());
+                businessSpec.setParser(parser);
+                businessSpec.setDescription(business.desc());
+
+                // store facade classes, they will be converted to Set<FacadeSpec> late
+                List<Class<?>> facadeClzList= Stream.of(business.facades()).collect(Collectors.toList());
+                Set<Class<?>> facadeClzSet= new HashSet<>(facadeClzList);
+                if (facadeClzList.size()!=facadeClzList.size()){
+                    List<Class<?>> duplicatedClz=facadeClzSet.stream()
+                            .filter(f->facadeClzList.indexOf(f)!=facadeClzList.lastIndexOf(f))
+                            .collect(Collectors.toList());
+
+                    String msg = clz + " is " + Annotations.BUSINESS + ", find duplicated class "+ duplicatedClz+" in its facade property";
+                    LOGGER.error(msg);
+                    throw new EnvironmentException(msg);
+                }
+                templateSpec2FacadeClz.put(businessSpec,facadeClzSet);
+
+                clz2TemplateSpec.put(clz, businessSpec);
+                LOGGER.debug("find {} on class \"{}\"", Annotations.BUSINESS, clz);
+            } else if (product != null) {
+                // scan product
+                InstanceRecgonizer recgonizer = beanRepository.getBean(product.recgonizer().getName());
+                ProductSpec productSpec = new ProductSpec(clz.getName(), product.name(), recgonizer);
+                productSpec.setDescription(product.desc());
+                clz2TemplateSpec.put(clz, productSpec);
+
+                // store facade classes, they will be converted to Set<FacadeSpec> late
+                List<Class<?>> facadeClzList= Stream.of(product.facades()).collect(Collectors.toList());
+                Set<Class<?>> facadeClzSet= new HashSet<>(facadeClzList);
+                if (facadeClzList.size()!=facadeClzList.size()){
+                    List<Class<?>> duplicatedClz=facadeClzSet.stream()
+                            .filter(f->facadeClzList.indexOf(f)!=facadeClzList.lastIndexOf(f))
+                            .collect(Collectors.toList());
+                    String msg = clz + " is " + Annotations.PRODUCT + ", find duplicated class "+ duplicatedClz+" in its facade property";
+                    LOGGER.error(msg);
+                    throw new EnvironmentException(msg);
+                }
+                templateSpec2FacadeClz.put(productSpec,facadeClzSet);
+                LOGGER.debug("find {} on class \"{}\"", Annotations.PRODUCT, clz);
             }
         }
+
 
         //second round, scan FacadeExtension, this can not be done since we have to scan Extension firs
         for (Map.Entry<Class<?>, Annotations> e : clz2Annotations.entrySet()) {
@@ -351,7 +384,7 @@ public class PlainEnvironmentBuilder implements EnvironmentBuilder {
 
                 Object facadeInstance = beanRepository.getBean(clz.getName());
 
-                //遍历ExtensionFacade中所有方法，查找满足Extension的方法
+                // Iterate on all methods from ExtensionFacade, filter method that satisfy Extension
                 for (Method method : clz.getMethods()) {
                     //only scan public & non-static & no-param method
                     if (Modifier.isPublic(method.getModifiers()) && !Modifier.isStatic(method.getModifiers()) && method.getParameterTypes().length == 0) {
@@ -398,7 +431,6 @@ public class PlainEnvironmentBuilder implements EnvironmentBuilder {
 
                             returnTypeImplementedExtensions.forEach(extensionSpec ->
                                     extensionFacadeSpec.getExtension2Implementations().put(extensionSpec, extensionImplementationSpec));
-
                         }
                     }
                 }
@@ -470,19 +502,6 @@ public class PlainEnvironmentBuilder implements EnvironmentBuilder {
             ExtensionFacade extensionFacade = clz2Annotations.get(clz).getExtensionFacade();
             ExtensionFacadeSpec extensionFacadeSpec = e.getValue();
 
-            // reset extensionFacade.belongsTo
-            for (Class<?> belongsToClz : extensionFacade.belongsTo()) {
-                TemplateSpec belongToSpec = clz2TemplateSpec.get(belongsToClz);
-                if (belongToSpec == null) {
-                    String msg = clz + " is " + Annotations.EXTENSION_FACADE + " belongsTo " + belongsToClz + ", but "
-                            + belongsToClz + "is not  " + Annotations.BUSINESS_TEMPLATE + " nor " + Annotations.SYSTEM_TEMPLATE;
-                    LOGGER.error(msg);
-                    throw new EnvironmentException(msg);
-                } else {
-                    extensionFacadeSpec.getBelongsTo().add(belongToSpec);
-                }
-            }
-
             // reset extension.implementation
             for (Map.Entry<ExtensionSpec, ExtensionImplementationSpec> me : extensionFacadeSpec.getExtension2Implementations().entrySet()) {
                 ExtensionSpec extensionSpec = me.getKey();
@@ -490,16 +509,6 @@ public class PlainEnvironmentBuilder implements EnvironmentBuilder {
                 extensionSpec.getImplementations().put(extensionFacadeSpec, implementationSpec);
             }
         }
-
-        for (ExtensionFacadeSpec extensionFacadeSpec : clz2FacadeSpec.values()) {
-            for (TemplateSpec belongToSpec : extensionFacadeSpec.getBelongsTo()) {
-                for (ExtensionSpec extensionSpec : extensionFacadeSpec.getExtension2Implementations().keySet()) {
-                    // reset template.getExtensions
-                    belongToSpec.getExtensions().computeIfAbsent(extensionSpec, k -> new HashSet<>()).add(extensionFacadeSpec);
-                }
-            }
-        }
-
 
         //construct Environment
         Environment env = new EnvironmentImpl();
@@ -509,12 +518,27 @@ public class PlainEnvironmentBuilder implements EnvironmentBuilder {
         env.getExtensions().addAll(clz2ExtensionSpec.values());
 
         for (TemplateSpec templateSpec : clz2TemplateSpec.values()) {
-            if (templateSpec instanceof BusinessTemplateSpec) {
-                BusinessTemplateSpec businessTemplateSpec = (BusinessTemplateSpec) templateSpec;
-                env.getBusinessTemplates().add(businessTemplateSpec);
-            } else if (templateSpec instanceof SystemTemplateSpec) {
-                SystemTemplateSpec systemTemplateSpec = (SystemTemplateSpec) templateSpec;
-                env.getSystemTemplates().add(systemTemplateSpec);
+            // reset template.
+            for (Class<?> facadeClz:templateSpec2FacadeClz.get(templateSpec)){
+                ExtensionFacadeSpec extensionFacadeSpec= clz2FacadeSpec.get(facadeClz);
+                if (extensionFacadeSpec==null){
+                    String msg = templateSpec.getCode() + " use "+ facadeClz + " as facade, but it it not " + Annotations.EXTENSION_FACADE;
+                    LOGGER.error(msg);
+                    throw new EnvironmentException(msg);
+                }
+
+                extensionFacadeSpec.getExtension2Implementations().forEach((extension,implementation)->{
+                    templateSpec.getExtensions().computeIfAbsent(extension,k->new HashSet<>()).add(extensionFacadeSpec);
+                });
+
+            }
+
+            if (templateSpec instanceof BusinessSpec) {
+                BusinessSpec businessSpec = (BusinessSpec) templateSpec;
+                env.getBusinesses().add(businessSpec);
+            } else if (templateSpec instanceof ProductSpec) {
+                ProductSpec productSpec = (ProductSpec) templateSpec;
+                env.getProducts().add(productSpec);
             } else {
                 throw new EnvironmentException("should never be here");
             }

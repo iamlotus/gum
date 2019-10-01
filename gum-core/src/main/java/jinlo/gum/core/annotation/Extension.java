@@ -5,10 +5,13 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import jinlo.gum.core.model.BusinessCodeParser;
 
 /**
- * 扩展点。扩展点必须是一个{@link FunctionalInterface}，以扩展点的类名作为扩展点的code，指代其中(唯一的)方法。
- * SDK维护者通常会定义若干{@link Extension}并以 {@link ExtensionFacade}的方式暴露给共建者，以实现业务自定义实现
+ * {@link Extension} must be a {@link FunctionalInterface}, it describes a method which is defined
+ * by platform developer and implemented by other (platform or business) developers. There may be more
+ * than one implementations in different {@link ExtensionFacade}, the core concept of gum framework
+ * is to pick suitable implementations by {@link BusinessCodeParser} and {@link Business}
  */
 
 @Retention(RetentionPolicy.RUNTIME)
@@ -16,15 +19,17 @@ import java.lang.annotation.Target;
 public @interface Extension {
 
     /**
-     * @return 名称，可以是中文或英文，缺省是code(类名)
+     * @return name, default to class name, for document purpose.
      */
     String name() default "";
 
     /**
-     *
-     * @return 描述
+     * @return description, for document purpose.
      */
     String desc() default "";
 
+    /**
+     * @return a class annotated with {@link Domain}
+     */
     Class<?> domain();
 }

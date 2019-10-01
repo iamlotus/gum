@@ -2,7 +2,6 @@ package jinlo.gum.core.spec;
 
 public class DomainSpec extends Spec {
 
-
     private DomainSpec parentDomain;
 
     public DomainSpec(String code) {

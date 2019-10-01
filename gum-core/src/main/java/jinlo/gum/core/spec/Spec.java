@@ -10,12 +10,9 @@ public abstract class Spec {
     //Id, full qualified class name
     private String code;
 
-
     private String name;
 
-
     private String description;
-
 
     public Spec(final String code) {
         this(code, null);

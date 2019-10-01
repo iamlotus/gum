@@ -1,7 +1,7 @@
 package jinlo.gum.core.runtime;
 
 import com.google.common.collect.Sets;
-import jinlo.gum.core.model.TemplateChecker;
+import jinlo.gum.core.model.InstanceRecgonizer;
 import jinlo.gum.core.spec.*;
 import jinlo.gum.core.testapps.app1.Demo;
 import jinlo.gum.core.testapps.app1.business1.B1Facade1;
@@ -12,11 +12,12 @@ import jinlo.gum.core.testapps.app1.business2.Business2;
 import jinlo.gum.core.testapps.app1.business2.Business2CodeParser;
 import jinlo.gum.core.testapps.app1.domain1.*;
 import jinlo.gum.core.testapps.app1.domain2.*;
-import jinlo.gum.core.testapps.app1.system1.S1Facade1;
-import jinlo.gum.core.testapps.app1.system1.System1;
-import jinlo.gum.core.testapps.app1.system2.S2Facade1;
-import jinlo.gum.core.testapps.app1.system2.S2Facade2;
-import jinlo.gum.core.testapps.app1.system2.System2;
+import jinlo.gum.core.testapps.app1.product1.P1Facade1;
+import jinlo.gum.core.testapps.app1.product1.Product1;
+import jinlo.gum.core.testapps.app1.product2.P2Facade1;
+import jinlo.gum.core.testapps.app1.product2.P2Facade2;
+import jinlo.gum.core.testapps.app1.product2.Product2;
+import jinlo.gum.core.testapps.app2.Demo2;
 import org.junit.Test;
 
 import java.util.Comparator;
@@ -105,21 +106,21 @@ public class PlainEnvironmentBuilderTest {
 
 
         // business
-        List<BusinessTemplateSpec> businesses = env.getBusinessTemplates().stream().sorted(Comparator.comparing(Spec::getCode)).collect(Collectors.toList());
+        List<BusinessSpec> businesses = env.getBusinesses().stream().sorted(Comparator.comparing(Spec::getCode)).collect(Collectors.toList());
         assertEquals(2, businesses.size());
-        BusinessTemplateSpec business1 = businesses.get(0);
+        BusinessSpec business1 = businesses.get(0);
         assertEquals(Business1.class.getName(), business1.getCode());
         assertEquals("业务1", business1.getName());
         assertEquals("desc1", business1.getDescription());
         assertEquals(Business1CodeParser.class, business1.getParser().getClass());
-        assertEquals(TemplateChecker.AlwaysKnowChecker.class, business1.getChecker().getClass());
+        assertEquals(InstanceRecgonizer.PositiveRecgonizer.class, business1.getRecgonizer().getClass());
 
-        BusinessTemplateSpec business2 = businesses.get(1);
+        BusinessSpec business2 = businesses.get(1);
         assertEquals(Business2.class.getName(), business2.getCode());
         assertEquals(business2.getCode(), business2.getName());
         assertEquals("", business2.getDescription());
         assertEquals(Business2CodeParser.class, business2.getParser().getClass());
-        assertEquals(Business2.FalseChecker.class, business2.getChecker().getClass());
+        assertEquals(Business2.FalseChecker.class, business2.getRecgonizer().getClass());
 
         // business extensions
         List<Map.Entry<ExtensionSpec, Set<ExtensionFacadeSpec>>> business1Exts = business1.getExtensions().entrySet().stream().sorted(Comparator.comparing(e -> e.getKey().getCode())).collect(Collectors.toList());
@@ -142,7 +143,6 @@ public class PlainEnvironmentBuilderTest {
         assertEquals(B1Facade1.class.getName(), b1Facade1.getCode());
         assertEquals("B1Facade1", b1Facade1.getName());
         assertEquals("B1Facade1 desc", b1Facade1.getDescription());
-        assertEquals(Sets.newHashSet(business1), b1Facade1.getBelongsTo());
         List<Map.Entry<ExtensionSpec, ExtensionImplementationSpec>> b1Facade1Ext2Impls = b1Facade1.getExtension2Implementations().entrySet().stream().sorted(Comparator.comparing(e -> e.getKey().getCode())).collect(Collectors.toList());
         assertEquals(2, b1Facade1Ext2Impls.size());
         assertEquals(ext11, b1Facade1Ext2Impls.get(0).getKey());
@@ -163,7 +163,6 @@ public class PlainEnvironmentBuilderTest {
         assertEquals(B1Facade2.class.getName(), b1Facade2.getCode());
         assertEquals(b1Facade2.getCode(), b1Facade2.getName());
         assertEquals("", b1Facade2.getDescription());
-        assertEquals(Sets.newHashSet(business1), b1Facade2.getBelongsTo());
         List<Map.Entry<ExtensionSpec, ExtensionImplementationSpec>> b1Facade2Ext2Impls = b1Facade2.getExtension2Implementations().entrySet().stream().sorted(Comparator.comparing(e -> e.getKey().getCode())).collect(Collectors.toList());
         assertEquals(1, b1Facade2Ext2Impls.size());
         assertEquals(ext11, b1Facade2Ext2Impls.get(0).getKey());
@@ -173,55 +172,51 @@ public class PlainEnvironmentBuilderTest {
         assertEquals(Sets.newHashSet(ext11), b1Facade2Ext1.getExtensionSpecs());
 
         List<Map.Entry<ExtensionSpec, Set<ExtensionFacadeSpec>>> business2Exts = business2.getExtensions().entrySet().stream().sorted(Comparator.comparing(e -> e.getKey().getCode())).collect(Collectors.toList());
-        assertEquals(0, business2Exts.size());
+        assertEquals(2, business2Exts.size());
 
         // system
-        List<SystemTemplateSpec> systems = env.getSystemTemplates().stream().sorted(Comparator.comparing(Spec::getCode)).collect(Collectors.toList());
+        List<ProductSpec> systems = env.getProducts().stream().sorted(Comparator.comparing(Spec::getCode)).collect(Collectors.toList());
         assertEquals(2, systems.size());
 
-        SystemTemplateSpec system1 = systems.get(0);
-        assertEquals(System1.class.getName(), system1.getCode());
+        ProductSpec system1 = systems.get(0);
+        assertEquals(Product1.class.getName(), system1.getCode());
         assertEquals("系统1", system1.getName());
-        assertEquals("system1 desc", system1.getDescription());
+        assertEquals("product1 desc", system1.getDescription());
         assertEquals(2, system1.getExtensions().size());
         List<ExtensionFacadeSpec> system1Facades = system1.getExtensions().get(ext11).stream().sorted(Comparator.comparing(Spec::getCode)).collect(Collectors.toList());
         assertEquals(3, system1Facades.size());
         ExtensionFacadeSpec s1Facade1 = system1Facades.get(0);
-        assertEquals(S1Facade1.class.getName(), s1Facade1.getCode());
+        assertEquals(P1Facade1.class.getName(), s1Facade1.getCode());
         assertEquals(s1Facade1.getCode(), s1Facade1.getName());
         assertEquals("", s1Facade1.getDescription());
         ExtensionFacadeSpec s2Facade1 = system1Facades.get(1);
-        assertEquals(S2Facade1.class.getName(), s2Facade1.getCode());
+        assertEquals(P2Facade1.class.getName(), s2Facade1.getCode());
         assertEquals(s2Facade1.getCode(), s2Facade1.getName());
         assertEquals("", s2Facade1.getDescription());
         ExtensionFacadeSpec s2Facade2 = system1Facades.get(2);
-        assertEquals(S2Facade2.class.getName(), s2Facade2.getCode());
+        assertEquals(P2Facade2.class.getName(), s2Facade2.getCode());
         assertEquals(s2Facade2.getCode(), s2Facade2.getName());
         assertEquals("", s2Facade2.getDescription());
         assertEquals(Sets.newHashSet(s1Facade1), system1.getExtensions().get(ext12));
 
-        SystemTemplateSpec system2 = systems.get(1);
-        assertEquals(System2.class.getName(), system2.getCode());
+        ProductSpec system2 = systems.get(1);
+        assertEquals(Product2.class.getName(), system2.getCode());
         assertEquals(system2.getCode(), system2.getName());
         assertEquals("", system2.getDescription());
         assertEquals(1, system2.getExtensions().size());
         List<ExtensionFacadeSpec> system2Ext11Impls = system2.getExtensions().get(ext11).stream().sorted(Comparator.comparing(Spec::getCode)).collect(Collectors.toList());
         assertEquals(1, system2Ext11Impls.size());
 
-        assertEquals(Sets.newHashSet(system1), s1Facade1.getBelongsTo());
-        assertEquals(Sets.newHashSet(system1, system2), s2Facade1.getBelongsTo());
-        assertEquals(Sets.newHashSet(system1), s2Facade2.getBelongsTo());
-
         // extensions
         List<ExtensionSpec> extensions = env.getExtensions().stream().sorted(Comparator.comparing(Spec::getCode)).collect(Collectors.toList());
         assertEquals(5, extensions.size());
         ExtensionSpec e11 = extensions.get(0);
         assertEquals(Ext11.class.getName(), e11.getCode());
-        assertEquals(5, e11.getImplementations().size());
+        assertEquals(6, e11.getImplementations().size());
 
         ExtensionSpec e12 = extensions.get(1);
         assertEquals(Ext12.class.getName(), e12.getCode());
-        assertEquals(2, e12.getImplementations().size());
+        assertEquals(3, e12.getImplementations().size());
 
         ExtensionSpec e13 = extensions.get(2);
         assertEquals(Ext13.class.getName(), e13.getCode());
@@ -239,14 +234,14 @@ public class PlainEnvironmentBuilderTest {
     @Test
     public void createEnvironment2() {
         // empty
-        String[] packageName = new String[]{jinlo.gum.core.testapps.app2.Demo.class.getPackage().getName()};
+        String[] packageName = new String[]{Demo2.class.getPackage().getName()};
         EnvironmentBuilder creator = new PlainEnvironmentBuilder(packageName, new PlainBeanRepository());
         Environment env = creator.build();
-        assertTrue(env.getBusinessTemplates().isEmpty());
+        assertTrue(env.getBusinesses().isEmpty());
         assertTrue(env.getDomains().isEmpty());
         assertTrue(env.getDomainServices().isEmpty());
         assertTrue(env.getExtensions().isEmpty());
-        assertTrue(env.getSystemTemplates().isEmpty());
+        assertTrue(env.getProducts().isEmpty());
 
     }
 }

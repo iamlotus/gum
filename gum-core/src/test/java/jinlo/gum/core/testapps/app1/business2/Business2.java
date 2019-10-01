@@ -1,12 +1,12 @@
 package jinlo.gum.core.testapps.app1.business2;
 
-import jinlo.gum.core.annotation.BusinessTemplate;
-import jinlo.gum.core.model.TemplateChecker;
+import jinlo.gum.core.annotation.Business;
+import jinlo.gum.core.model.InstanceRecgonizer;
 
 
-@BusinessTemplate(parser = Business2CodeParser.class,checker = Business2.FalseChecker.class)
+@Business(parser = Business2CodeParser.class, recgonizer = Business2.FalseChecker.class, facades = B2Facade1.class)
 public interface Business2 {
-    class FalseChecker implements TemplateChecker{
+    class FalseChecker implements InstanceRecgonizer {
         @Override
         public boolean knows(Object instance) {
             return false;

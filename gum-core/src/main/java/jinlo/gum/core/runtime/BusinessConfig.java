@@ -3,9 +3,9 @@ package jinlo.gum.core.runtime;
 
 import jinlo.gum.core.model.BusinessCode;
 import jinlo.gum.core.model.BusinessCodeParser;
-import jinlo.gum.core.spec.BusinessTemplateSpec;
+import jinlo.gum.core.spec.BusinessSpec;
 import jinlo.gum.core.spec.ExtensionImplementationSpec;
-import jinlo.gum.core.spec.SystemTemplateSpec;
+import jinlo.gum.core.spec.ProductSpec;
 
 import java.util.List;
 import java.util.Set;
@@ -14,13 +14,13 @@ import java.util.Set;
  * 业务配置，决定当前环境中对指定业务编码生效的系统模板/业务模板及扩展点的冲突优先级。每个业务配置都隶属于一个当前环境({@link Environment})
  */
 public interface BusinessConfig {
-
     /**
-     * 当前业务配置对哪些业务编码生效，主要起文档作用。如果对应业务的{@link BusinessCodeParser}返回不在
-     * 这里的编码，运行时会有warning，但不会抛异常
+     * 能否识别指定业务编码, 要求{@link BusinessConfig}必须能识别自己配置的{@link BusinessCodeParser}
+     * parse出的业务编码，否则会抛异常。
+     * @param businessCode
      * @return
      */
-    Set<BusinessCode> getBusinessCodes();
+    boolean knows(BusinessCode businessCode);
 
     /**
      * 所属当前环境
@@ -32,14 +32,13 @@ public interface BusinessConfig {
      * 当前配置中生效的产品
      * @return
      */
-    Set<SystemTemplateSpec> getSystemTemplates();
-
+    Set<ProductSpec> getProducts();
 
     /**
      * 当前配置中生效的业务
      * @return
      */
-    BusinessTemplateSpec getBusinessTemplate();
+    BusinessSpec getBusiness();
 
     /**
      * 当前配置中生效的所有扩展点的编码

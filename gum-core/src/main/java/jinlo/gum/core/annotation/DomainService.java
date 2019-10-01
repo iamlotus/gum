@@ -6,28 +6,33 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * 域服务，管理用。通常会组装{@link DomainFunction}并提供更粗粒度(更具有业务含义)的实现。在流程节点中一般会调用域服务。
+ * Domain service, platform developer build {@link DomainService} with fine-grained {@link DomainFunction}s
+ * to express more coarse-grained service. In general, {@link DomainService} is more analyser friendly, which
+ * can be used as a node in BPMN.
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.METHOD})
 public @interface DomainService {
 
     /**
-     * @return 能力名称，仅仅管理和文档用，缺省为类名
+     * name, default to class name, for document purpose
+     *
+     * @return
      */
     String name() default "";
 
-
     /**
-     * @return 所属Domain的类名，管理和文档用
-     */
-    Class<?> domain();
-
-    /**
-     * 描述，仅仅管理和文档用，缺省为空
+     * description, for document purpose
      *
      * @return
      */
     String desc() default "";
+
+    /**
+     * @return a class annotated with {@link Domain}
+     */
+    Class<?> domain();
+
+
 
 }

@@ -4,8 +4,8 @@ import com.google.common.collect.Sets;
 import jinlo.gum.core.exception.BusinessProcessException;
 import jinlo.gum.core.model.BusinessCode;
 import jinlo.gum.core.model.BusinessCodeParser;
-import jinlo.gum.core.model.TemplateChecker;
-import jinlo.gum.core.spec.BusinessTemplateSpec;
+import jinlo.gum.core.model.InstanceRecgonizer;
+import jinlo.gum.core.spec.BusinessSpec;
 import org.junit.Test;
 
 import static org.easymock.EasyMock.*;
@@ -49,17 +49,17 @@ public class RuntimeTest {
     @Test
     public void testFindBusinessConfigByInstance(){
 
-        BusinessTemplateSpec business1=new BusinessTemplateSpec("Business1", TemplateChecker.AlwaysKnowChecker.INSTANCE);
+        BusinessSpec business1=new BusinessSpec("Business1", new InstanceRecgonizer.PositiveRecgonizer());
         business1.setParser(new Entity1Parser());
         BusinessConfig config1=createMock(BusinessConfig.class);
-        expect(config1.getBusinessTemplate()).andReturn(business1).anyTimes();
-        expect(config1.getBusinessCodes()).andReturn(Sets.newHashSet()).anyTimes();
+        expect(config1.getBusiness()).andReturn(business1).anyTimes();
+        expect(config1.knows(BusinessCode.of("Business1"))).andReturn(true).anyTimes();
 
-        BusinessTemplateSpec business2=new BusinessTemplateSpec("Business2", TemplateChecker.AlwaysKnowChecker.INSTANCE);
+        BusinessSpec business2=new BusinessSpec("Business2", new InstanceRecgonizer.PositiveRecgonizer());
         business2.setParser(new Entity2Parser());
         BusinessConfig config2=createMock(BusinessConfig.class);
-        expect(config2.getBusinessTemplate()).andReturn(business2).anyTimes();
-        expect(config2.getBusinessCodes()).andReturn(Sets.newHashSet()).anyTimes();
+        expect(config2.getBusiness()).andReturn(business2).anyTimes();
+        expect(config2.knows(BusinessCode.of("Business2"))).andReturn(true).anyTimes();
         replay(config1,config2);
 
         Runtime runtime=new Runtime(Sets.newHashSet(config1,config2));
@@ -74,17 +74,17 @@ public class RuntimeTest {
 
     @Test
     public void testCreateProcess(){
-        BusinessTemplateSpec business1=new BusinessTemplateSpec("Business1", TemplateChecker.AlwaysKnowChecker.INSTANCE);
+        BusinessSpec business1=new BusinessSpec("Business1", new InstanceRecgonizer.PositiveRecgonizer());
         business1.setParser(new Entity1Parser());
         BusinessConfig config1=createMock(BusinessConfig.class);
-        expect(config1.getBusinessTemplate()).andReturn(business1).anyTimes();
-        expect(config1.getBusinessCodes()).andReturn(Sets.newHashSet()).anyTimes();
+        expect(config1.getBusiness()).andReturn(business1).anyTimes();
+        expect(config1.knows(BusinessCode.of("Business1"))).andReturn(true).anyTimes();
 
-        BusinessTemplateSpec business2=new BusinessTemplateSpec("Business2", TemplateChecker.AlwaysKnowChecker.INSTANCE);
+        BusinessSpec business2=new BusinessSpec("Business2", new InstanceRecgonizer.PositiveRecgonizer());
         business2.setParser(new Entity2Parser());
         BusinessConfig config2=createMock(BusinessConfig.class);
-        expect(config2.getBusinessTemplate()).andReturn(business2).anyTimes();
-        expect(config2.getBusinessCodes()).andReturn(Sets.newHashSet()).anyTimes();
+        expect(config2.getBusiness()).andReturn(business2).anyTimes();
+        expect(config2.knows(BusinessCode.of("Business2"))).andReturn(true).anyTimes();
         replay(config1,config2);
 
         Runtime runtime=new Runtime(Sets.newHashSet(config1,config2));

@@ -168,12 +168,12 @@ public class Runtime {
 
         for (BusinessConfig businessConfig : businessConfigs) {
             try {
-                if (businessConfig.getBusinessTemplate().getParser().knows(instance)) {
+                if (businessConfig.getBusiness().getParser().knows(instance)) {
                     knows.add(businessConfig);
                 }
             } catch (Exception e) {
                 // if one business parser throws exception, it should not impact other business
-                LOGGER.warn(businessConfig.getBusinessTemplate().getCode() + " throws Exception when parse " + instance, e);
+                LOGGER.warn(businessConfig.getBusiness().getCode() + " throws Exception when parse " + instance, e);
             }
         }
 
@@ -190,7 +190,7 @@ public class Runtime {
         }
 
         BusinessConfig businessConfig = knows.iterator().next();
-        BusinessCode businessCode = businessConfig.getBusinessTemplate().getParser().parse(instance);
+        BusinessCode businessCode = businessConfig.getBusiness().getParser().parse(instance);
 
         if (businessCode == null) {
             String msg = businessConfig + "parse " + instance + " return null ";
@@ -198,8 +198,11 @@ public class Runtime {
             throw new BusinessProcessException(msg);
         }
 
-        if (!businessConfig.getBusinessCodes().contains(businessCode)) {
-            LOGGER.warn("{} parse {} return {} which is not in template", businessConfig, instance, businessCode);
+        if (!businessConfig.knows(businessCode)) {
+            // warning only by now, not restriction
+            String msg = businessConfig+" does not know " + businessCode+ " which is parsed from " + instance+" by itself";
+            LOGGER.error(msg);
+            throw new BusinessProcessException(msg);
         }
 
         return new Target(businessCode, businessConfig);

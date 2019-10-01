@@ -26,27 +26,27 @@ import java.util.stream.Collectors;
 public class XmlBusinessConfigBuilder implements BusinessConfigBuilder {
     private static final Logger LOGGER = LoggerFactory.getLogger(PlainEnvironmentBuilder.class);
 
-    // express wrong_config in bean
+    // express config in bean
     static class BusinessConfigXMLBean {
         private Set<String> businessCodes = new HashSet<>();
-        private Set<String> systemTemplates = new HashSet<>();
-        private String businessTemplate;
+        private Set<String> products = new HashSet<>();
+        private String business;
         private Map<String, List<String>> orders = new HashMap<>();
 
-        public String getBusinessTemplate() {
-            return businessTemplate;
+        public String getBusiness() {
+            return business;
         }
 
-        public void setBusinessTemplate(String businessTemplate) {
-            this.businessTemplate = businessTemplate;
+        public void setBusiness(String business) {
+            this.business = business;
         }
 
         public Set<String> getBusinessCodes() {
             return businessCodes;
         }
 
-        public Set<String> getSystemTemplates() {
-            return systemTemplates;
+        public Set<String> getProducts() {
+            return products;
         }
 
         public Map<String, List<String>> getOrders() {
@@ -61,25 +61,24 @@ public class XmlBusinessConfigBuilder implements BusinessConfigBuilder {
 
         private Environment environment;
 
-        private Set<SystemTemplateSpec> systemTemplates = new HashSet<>();
+        private Set<ProductSpec> productSpecs = new HashSet<>();
 
-        private BusinessTemplateSpec businessTemplateSpec;
+        private BusinessSpec businessSpec;
 
         private Map<String, List<ExtensionImplementationSpec>> implementations = new HashMap<>();
 
 
         @Override
-        public Set<BusinessCode> getBusinessCodes() {
-            return businessCodes;
+        public boolean knows(BusinessCode businessCode) {
+            return businessCodes.contains(businessCode);
         }
-
 
         public void setEnvironment(Environment environment) {
             this.environment = environment;
         }
 
-        public void setBusinessTemplateSpec(BusinessTemplateSpec businessTemplateSpec) {
-            this.businessTemplateSpec = businessTemplateSpec;
+        public void setBusinessSpec(BusinessSpec businessSpec) {
+            this.businessSpec = businessSpec;
         }
 
         @Override
@@ -88,13 +87,13 @@ public class XmlBusinessConfigBuilder implements BusinessConfigBuilder {
         }
 
         @Override
-        public Set<SystemTemplateSpec> getSystemTemplates() {
-            return systemTemplates;
+        public Set<ProductSpec> getProducts() {
+            return productSpecs;
         }
 
         @Override
-        public BusinessTemplateSpec getBusinessTemplate() {
-            return businessTemplateSpec;
+        public BusinessSpec getBusiness() {
+            return businessSpec;
         }
 
         @Override
@@ -114,7 +113,7 @@ public class XmlBusinessConfigBuilder implements BusinessConfigBuilder {
 
         @Override
         public String toString() {
-            return "[BusinessConfig " + businessTemplateSpec == null ? "" : businessTemplateSpec.getCode() + "]";
+            return "[BusinessConfig " + businessSpec == null ? "" : businessSpec.getCode() + "]";
         }
     }
 
@@ -139,7 +138,8 @@ public class XmlBusinessConfigBuilder implements BusinessConfigBuilder {
     }
 
     private BusinessConfigXMLBean parseXmlBean(InputStream is) throws Exception {
-        // 目前使用JDK自带DOM和XPATH，未来考虑采用内存占用更小的SAX
+        // USE DOM && XPATH
+        // TODO: use SAX for less memory usage
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
         factory.setNamespaceAware(true);
         DocumentBuilder builder = factory.newDocumentBuilder();
@@ -147,7 +147,7 @@ public class XmlBusinessConfigBuilder implements BusinessConfigBuilder {
         XPath xpath = XPathFactory.newInstance().newXPath();
         BusinessConfigXMLBean bean = new BusinessConfigXMLBean();
 
-        NodeList businessCodes = (NodeList) xpath.evaluate("/BusinessTemplateConfig/BusinessCodes/BusinessCode", doc, XPathConstants.NODESET);
+        NodeList businessCodes = (NodeList) xpath.evaluate("/BusinessConfig/BusinessCodes/BusinessCode", doc, XPathConstants.NODESET);
         for (int i = 0; i < businessCodes.getLength(); i++) {
             String businessCode = businessCodes.item(i).getTextContent();
             if (businessCode.isEmpty()) {
@@ -168,31 +168,31 @@ public class XmlBusinessConfigBuilder implements BusinessConfigBuilder {
             throw new BusinessConfigException(msg);
         }
 
-        String businessTemplateCode = (String) xpath.evaluate("/BusinessTemplateConfig/BusinessTemplate/@code", doc, XPathConstants.STRING);
-        if (businessTemplateCode == null) {
-            String msg = "must specify code of BusinessTemplate";
+        String business = (String) xpath.evaluate("/BusinessConfig/Business/@code", doc, XPathConstants.STRING);
+        if (business == null) {
+            String msg = "must specify code of Business";
             LOGGER.error(msg);
             throw new BusinessConfigException(msg);
         }
-        bean.businessTemplate = businessTemplateCode;
+        bean.business = business;
 
 
-        NodeList systemTemplateCodes = (NodeList) xpath.evaluate("/BusinessTemplateConfig/SystemTemplates/SystemTemplate/@code", doc, XPathConstants.NODESET);
-        for (int i = 0; i < systemTemplateCodes.getLength(); i++) {
-            String systemTemplateCode = systemTemplateCodes.item(i).getTextContent();
-            if (systemTemplateCode.isEmpty()) {
-                String msg = "find empty SystemTemplate Code";
+        NodeList products = (NodeList) xpath.evaluate("/BusinessConfig/Products/Product/@code", doc, XPathConstants.NODESET);
+        for (int i = 0; i < products.getLength(); i++) {
+            String product = products.item(i).getTextContent();
+            if (product.isEmpty()) {
+                String msg = "find empty Product Code";
                 LOGGER.error(msg);
                 throw new BusinessConfigException(msg);
             }
-            if (!bean.systemTemplates.add(systemTemplateCode)) {
-                String msg = "find duplicate SystemTemplate Code:" + systemTemplateCode;
+            if (!bean.products.add(product)) {
+                String msg = "find duplicate Product Code:" + product;
                 LOGGER.error(msg);
                 throw new BusinessConfigException(msg);
             }
         }
 
-        NodeList orderExtensions = (NodeList) xpath.evaluate("/BusinessTemplateConfig/Order/Extension", doc, XPathConstants.NODESET);
+        NodeList orderExtensions = (NodeList) xpath.evaluate("/BusinessConfig/Order/Extension", doc, XPathConstants.NODESET);
         for (int i = 0; i < orderExtensions.getLength(); i++) {
             Node extensionNode = orderExtensions.item(i);
             String extensionCode = xpath.evaluate("./@code", extensionNode);
@@ -246,45 +246,45 @@ public class XmlBusinessConfigBuilder implements BusinessConfigBuilder {
         config.environment = env;
         config.businessCodes.addAll(bean.businessCodes.stream().map(BusinessCode::of).collect(Collectors.toSet()));
 
-        Optional<BusinessTemplateSpec> business = env.getBusinessTemplates().stream().filter(e -> e.getCode().equals(bean.businessTemplate)).findFirst();
+        Optional<BusinessSpec> business = env.getBusinesses().stream().filter(e -> e.getCode().equals(bean.business)).findFirst();
         if (!business.isPresent()) {
-            String msg = "can not find BusinessTemplate " + bean.businessTemplate + " in environment";
+            String msg = "can not find Business " + bean.business + " in environment";
             LOGGER.error(msg);
             throw new BusinessConfigException(msg);
         } else {
-            config.businessTemplateSpec = business.get();
+            config.businessSpec = business.get();
         }
 
-        Map<String, SystemTemplateSpec> systems = env.getSystemTemplates().stream().collect(Collectors.toMap(Spec::getCode, Function.identity()));
-        bean.systemTemplates.forEach(systemCode -> {
-            SystemTemplateSpec system = systems.get(systemCode);
-            if (system == null) {
-                String msg = "can not find SystemTemplate " + systemCode + " in environment";
+        Map<String, ProductSpec> products = env.getProducts().stream().collect(Collectors.toMap(Spec::getCode, Function.identity()));
+        bean.products.forEach(productCode -> {
+            ProductSpec product = products.get(productCode);
+            if (product == null) {
+                String msg = "can not find Product " + productCode + " in environment";
                 LOGGER.error(msg);
                 throw new BusinessConfigException(msg);
             } else {
-                config.systemTemplates.add(system);
+                config.productSpecs.add(product);
             }
         });
 
-        // collect all effective extension and optional facades from BusinessTemplate and SystemTemplates
-        Map<ExtensionSpec, Set<ExtensionFacadeSpec>> optionalExt2Facades = new HashMap<>();
+        // collect all effective extension and candidate facades from Business and Product
+        Map<ExtensionSpec, Set<ExtensionFacadeSpec>> candidateExt2Facades = new HashMap<>();
         // initialize from business
-        optionalExt2Facades.putAll(config.businessTemplateSpec.getExtensions());
-        // supplement from systems
-        for (SystemTemplateSpec systemTemplate : config.systemTemplates) {
+        candidateExt2Facades.putAll(config.businessSpec.getExtensions());
+        // supplement from products
+        for (ProductSpec systemTemplate : config.productSpecs) {
             for (Map.Entry<ExtensionSpec, Set<ExtensionFacadeSpec>> e : systemTemplate.getExtensions().entrySet()) {
                 ExtensionSpec extensionSpec = e.getKey();
                 Set<ExtensionFacadeSpec> facadeSpecs = e.getValue();
-                optionalExt2Facades.computeIfAbsent(extensionSpec, k -> new HashSet<>()).addAll(facadeSpecs);
+                candidateExt2Facades.computeIfAbsent(extensionSpec, k -> new HashSet<>()).addAll(facadeSpecs);
             }
         }
 
-        Map<String, Set<ExtensionFacadeSpec>> optionalExtCode2Facades = optionalExt2Facades.entrySet().stream().collect(Collectors.toMap(
+        Map<String, Set<ExtensionFacadeSpec>> optionalExtCode2Facades = candidateExt2Facades.entrySet().stream().collect(Collectors.toMap(
                 e -> e.getKey().getCode(), Map.Entry::getValue
         ));
 
-        Map<String, ExtensionSpec> optionalCode2Exts = optionalExt2Facades.keySet().stream().collect(Collectors.toMap(Spec::getCode, Function.identity()));
+        Map<String, ExtensionSpec> candidateCode2Exts = candidateExt2Facades.keySet().stream().collect(Collectors.toMap(Spec::getCode, Function.identity()));
         Map<String, List<ExtensionImplementationSpec>> configImplementations = new HashMap<>();
 
         // 计算最终生效的扩展点顺序时以配置为基础。 如果某个扩展点在配置中显式指定了顺序，则必须指定所有实现的排序(不能只指定部分)
@@ -300,7 +300,7 @@ public class XmlBusinessConfigBuilder implements BusinessConfigBuilder {
             }
 
             // extension must exists
-            ExtensionSpec extension = optionalCode2Exts.get(extensionCode);
+            ExtensionSpec extension = candidateCode2Exts.get(extensionCode);
 
             // 指定的对应实现必须存在于配置和环境中
             Map<String, ExtensionFacadeSpec> optionalCode2Facades = optionalFacades.stream().collect(Collectors.toMap(Spec::getCode, Function.identity()));
@@ -337,7 +337,7 @@ public class XmlBusinessConfigBuilder implements BusinessConfigBuilder {
         }
 
 
-        for (Map.Entry<ExtensionSpec, Set<ExtensionFacadeSpec>> e : optionalExt2Facades.entrySet()) {
+        for (Map.Entry<ExtensionSpec, Set<ExtensionFacadeSpec>> e : candidateExt2Facades.entrySet()) {
             ExtensionSpec extensionSpec = e.getKey();
             String extensionCode = extensionSpec.getCode();
             if (!configImplementations.containsKey(extensionCode)) {

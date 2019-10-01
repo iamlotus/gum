@@ -24,7 +24,6 @@ public class AnnotationUtils {
             return false;
         }
 
-
         long abstractMethodCount = Arrays.stream(clz.getMethods()).filter(m -> Modifier.isAbstract(m.getModifiers())).collect(Collectors.counting());
 
         return abstractMethodCount==1;

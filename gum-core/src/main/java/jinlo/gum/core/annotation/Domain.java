@@ -6,28 +6,33 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * 业务域
+ * {@link Domain} is the root concept, all design concepts are associated with their domain (explicitly or implicitly).
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.TYPE})
 public @interface Domain {
 
     /**
-     * 所属父域，仅仅管理和文档用，缺省为null
-     * @return
-     */
-    Class<?> parentDomainClass() default void.class;
-
-    /**
-     * 域名称，仅仅管理和文档用，缺省为类名
+     * name, default to class name, for document purpose
+     *
      * @return
      */
     String name() default "";
 
     /**
-     * 域描述，仅仅管理和文档用，缺省为空
+     * description, for document purpose
+     *
      * @return
      */
     String desc() default "";
+
+
+    /**
+     * parent, for document purpose.
+     * @return
+     */
+    Class<?> parentDomainClass() default void.class;
+
+
 
 }

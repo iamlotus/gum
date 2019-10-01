@@ -11,9 +11,6 @@ public class ExtensionFacadeSpec extends Spec {
     // 此门面实现了哪些扩展点以及扩展点的具体实现，在一个门面中一个扩展点只能有一个实现。这个实现在运行时可以动态转换为扩展点对应的接口
     private Map<ExtensionSpec, ExtensionImplementationSpec> extension2Implementations = new HashMap<>();
 
-    // 所属模板，每个门面可以属于若干模板
-    private Set<TemplateSpec> belongsTo = new HashSet<>();
-
     public ExtensionFacadeSpec(String code) {
         super(code);
     }
@@ -26,8 +23,5 @@ public class ExtensionFacadeSpec extends Spec {
         return extension2Implementations;
     }
 
-    public Set<TemplateSpec> getBelongsTo() {
-        return belongsTo;
-    }
 
 }

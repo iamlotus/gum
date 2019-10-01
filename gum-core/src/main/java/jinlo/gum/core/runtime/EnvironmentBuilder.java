@@ -2,7 +2,7 @@ package jinlo.gum.core.runtime;
 
 
 /**
- * 创建环境
+ * Used to build {@link Environment}
  */
 public interface EnvironmentBuilder {
 

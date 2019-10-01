@@ -1,5 +1,7 @@
 package jinlo.gum.core.annotation;
 
+import jinlo.gum.core.ExtensionCallback;
+import jinlo.gum.core.reduce.Reducer;
 import jinlo.gum.core.reduce.Reducers;
 
 import java.lang.annotation.ElementType;
@@ -7,29 +9,30 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+import jinlo.gum.core.runtime.BusinessProcesses;
+
 /**
- * 域方法,管理用。在运行期某个{@link Extension}可能有若干(按照优先级排序的)实现，在{@link DomainFunction}通过指定{@link Reducers}
- * 确定如何使用这若干实现返回的结果，通过使用{@link DomainFunction}后续业务逻辑不用再考虑扩展点的具体实现。
+ * Domain function, marks function that encapsulates invocation of {@link BusinessProcesses#executeExtension}, which
+ * specifies the way to deal with multiple results from {@link ExtensionFacade} by giving {@link Reducers}. Platform
+ * developer use {@link DomainFunction} as basic business unit for further usage (constructing {@link DomainService}, for example).
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.METHOD})
 public @interface DomainFunction {
 
     /**
-     * @return 能力名称，仅仅管理和文档用，缺省为类名
+     * @return name, default to class name, for document purpose.
      */
     String name() default "";
 
 
     /**
-     * @return 所属Domain的类名，管理和文档用
+     * @return a class annotated with {@link Domain}
      */
     Class<?> domain();
 
     /**
-     * 描述，仅仅管理和文档用，缺省为空
-     *
-     * @return
+     * @return description, for document purpose.
      */
     String desc() default "";
 
