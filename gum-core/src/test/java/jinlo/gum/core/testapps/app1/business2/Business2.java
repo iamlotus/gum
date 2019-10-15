@@ -4,7 +4,7 @@ import jinlo.gum.core.annotation.Business;
 import jinlo.gum.core.model.InstanceRecgonizer;
 
 
-@Business(parser = Business2CodeParser.class, recgonizer = Business2.FalseChecker.class, facades = B2Facade1.class)
+@Business(recgonizer = Business2.FalseChecker.class, facades = B2Facade1.class)
 public interface Business2 {
     class FalseChecker implements InstanceRecgonizer {
         @Override

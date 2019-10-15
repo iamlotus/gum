@@ -8,7 +8,7 @@
     <artifactId>product2</artifactId>
     <version>1.0-SNAPSHOT</version>
 
-    <name>jsf sample quickstart product1</name>
+    <name>quick-start demo: product2</name>
 
     <parent>
         <groupId>jinlo.gum.demo.quickstart</groupId>

@@ -1,11 +1,12 @@
 package jinlo.gum.core.annotation;
 
 
+import jinlo.gum.core.model.BusinessCodeParser;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-import jinlo.gum.core.model.BusinessCodeParser;
 
 /**
  * {@link Extension} must be a {@link FunctionalInterface}, it describes a method which is defined

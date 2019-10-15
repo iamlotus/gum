@@ -13,14 +13,14 @@ public class BusinessProcessesTest {
     public void executeExtension() {
         //业务扩展点先执行
         int result;
-        result = createProcessFromDemo3("/app3_business_first_config.xml").execute(() -> {
+        result = createProcessFromDemo3("/app3_plugin.xml","/app3_business_first_config.xml").execute(() -> {
             Function f = new Function();
             return f.getNumber();
         });
         assertEquals(101, result);
 
         //系统扩展点先执行
-        result = createProcessFromDemo3("/app3_system_first_config.xml").execute(() -> {
+        result = createProcessFromDemo3("/app3_plugin.xml","/app3_system_first_config.xml").execute(() -> {
             Function f = new Function();
             return f.getNumber();
         });
@@ -31,21 +31,21 @@ public class BusinessProcessesTest {
     public void executeExtensionFirstOf() {
         //FirstOf 会把业务扩展点过滤掉
         int result;
-        result = createProcessFromDemo3("/app3_business_first_config.xml").execute(() -> {
+        result = createProcessFromDemo3("/app3_plugin.xml","/app3_business_first_config.xml").execute(() -> {
             Function f = new Function();
             return f.getNumberGreaterThan150();
         });
         assertEquals(200, result);
 
         //FirstOf 会把业务扩展点过滤掉
-        result = createProcessFromDemo3("/app3_system_first_config.xml").execute(() -> {
+        result = createProcessFromDemo3("/app3_plugin.xml","/app3_system_first_config.xml").execute(() -> {
             Function f = new Function();
             return f.getNumberGreaterThan150();
         });
         assertEquals(200, result);
 
         //FirstOf 会把所有扩展点过滤掉
-        Integer i = createProcessFromDemo3("/app3_system_first_config.xml").execute(() -> {
+        Integer i = createProcessFromDemo3("/app3_plugin.xml","/app3_system_first_config.xml").execute(() -> {
             Function f = new Function();
             return f.getNumberGreaterThan300();
         });
@@ -56,7 +56,7 @@ public class BusinessProcessesTest {
     public void executeExtensionWithDetail() {
         //返回Detail
         ExtensionExecuteDetail<Integer,Integer> details;
-        details = createProcessFromDemo3("/app3_business_first_config.xml").execute(() -> {
+        details = createProcessFromDemo3("/app3_plugin.xml","/app3_business_first_config.xml").execute(() -> {
             Function f = new Function();
             return f.getNumberGreaterThan150WithDetail();
         });
@@ -74,15 +74,18 @@ public class BusinessProcessesTest {
 
     }
 
-    private BusinessProcess createProcessFromDemo3(String configName) {
+    private BusinessProcess createProcessFromDemo3(String pluginName,String configName) {
         String[] packageName = new String[]{Demo3.class.getPackage().getName()};
         EnvironmentBuilder envBuilder = new PlainEnvironmentBuilder(packageName, new PlainBeanRepository());
         Environment env = envBuilder.build();
 
         XmlBusinessConfigBuilder configBuilder = new XmlBusinessConfigBuilder(this.getClass().getResourceAsStream(configName));
-
         BusinessConfig config = configBuilder.build(env);
-        Runtime runtime = new Runtime(Sets.newHashSet(config));
+
+        XmlPluginBuilder pluginBuilder = new XmlPluginBuilder(this.getClass().getResourceAsStream(pluginName));
+        Plugin plugin = pluginBuilder.build(new PlainBeanRepository());
+
+        Runtime runtime = new Runtime(Sets.newHashSet(plugin), Sets.newHashSet(config));
         BusinessProcess process = runtime.createProcess();
         return process;
     }

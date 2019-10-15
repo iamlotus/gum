@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Plugin>
+    <name>app3 plugin name</name>
+
+    <description>app3 plugin description</description>
+
+    <BusinessCodeParser class="jinlo.gum.core.testapps.app3.B$MyCodeParser"/>
+</Plugin>

@@ -3,7 +3,6 @@ package jinlo.gum.core.runtime;
 
 import jinlo.gum.core.annotation.*;
 import jinlo.gum.core.exception.EnvironmentException;
-import jinlo.gum.core.model.BusinessCodeParser;
 import jinlo.gum.core.model.InstanceRecgonizer;
 import jinlo.gum.core.spec.*;
 import jinlo.gum.core.utils.AnnotationUtils;
@@ -225,7 +224,7 @@ public class PlainEnvironmentBuilder implements EnvironmentBuilder {
                 Class<?> clz;
                 try {
                     clz = resource.getClassLoader().loadClass(className);
-                } catch (ClassNotFoundException e) {
+                } catch (Throwable e) {
                     throw new RuntimeException(e);
                 }
 
@@ -248,7 +247,7 @@ public class PlainEnvironmentBuilder implements EnvironmentBuilder {
     // Iterate all annotated classes, construct environment, maintains bi-relationship
     private Environment buildEnvironment(Map<Class<?>, Annotations> clz2Annotations) {
 
-        Map<TemplateSpec, Set<Class<?>>> templateSpec2FacadeClz=new HashMap<>();
+        Map<TemplateSpec, Set<Class<?>>> templateSpec2FacadeClz = new HashMap<>();
         Map<Class<?>, DomainSpec> clz2DomainSpec = new HashMap<>();
         Map<DomainFunctionSpec, Class<?>> domainFunctionSpec2Domains = new HashMap<>();
         Map<DomainServiceSpec, Class<?>> domainServiceSpec2Domains = new HashMap<>();
@@ -326,23 +325,21 @@ public class PlainEnvironmentBuilder implements EnvironmentBuilder {
                 // scan business
                 InstanceRecgonizer recgonizer = beanRepository.getBean(business.recgonizer().getName());
                 BusinessSpec businessSpec = new BusinessSpec(clz.getName(), business.name(), recgonizer);
-                BusinessCodeParser parser = beanRepository.getBean(business.parser().getName());
-                businessSpec.setParser(parser);
                 businessSpec.setDescription(business.desc());
 
                 // store facade classes, they will be converted to Set<FacadeSpec> late
-                List<Class<?>> facadeClzList= Stream.of(business.facades()).collect(Collectors.toList());
-                Set<Class<?>> facadeClzSet= new HashSet<>(facadeClzList);
-                if (facadeClzList.size()!=facadeClzList.size()){
-                    List<Class<?>> duplicatedClz=facadeClzSet.stream()
-                            .filter(f->facadeClzList.indexOf(f)!=facadeClzList.lastIndexOf(f))
+                List<Class<?>> facadeClzList = Stream.of(business.facades()).collect(Collectors.toList());
+                Set<Class<?>> facadeClzSet = new HashSet<>(facadeClzList);
+                if (facadeClzList.size() != facadeClzList.size()) {
+                    List<Class<?>> duplicatedClz = facadeClzSet.stream()
+                            .filter(f -> facadeClzList.indexOf(f) != facadeClzList.lastIndexOf(f))
                             .collect(Collectors.toList());
 
-                    String msg = clz + " is " + Annotations.BUSINESS + ", find duplicated class "+ duplicatedClz+" in its facade property";
+                    String msg = clz + " is " + Annotations.BUSINESS + ", find duplicated class " + duplicatedClz + " in its facade property";
                     LOGGER.error(msg);
                     throw new EnvironmentException(msg);
                 }
-                templateSpec2FacadeClz.put(businessSpec,facadeClzSet);
+                templateSpec2FacadeClz.put(businessSpec, facadeClzSet);
 
                 clz2TemplateSpec.put(clz, businessSpec);
                 LOGGER.debug("find {} on class \"{}\"", Annotations.BUSINESS, clz);
@@ -354,17 +351,17 @@ public class PlainEnvironmentBuilder implements EnvironmentBuilder {
                 clz2TemplateSpec.put(clz, productSpec);
 
                 // store facade classes, they will be converted to Set<FacadeSpec> late
-                List<Class<?>> facadeClzList= Stream.of(product.facades()).collect(Collectors.toList());
-                Set<Class<?>> facadeClzSet= new HashSet<>(facadeClzList);
-                if (facadeClzList.size()!=facadeClzList.size()){
-                    List<Class<?>> duplicatedClz=facadeClzSet.stream()
-                            .filter(f->facadeClzList.indexOf(f)!=facadeClzList.lastIndexOf(f))
+                List<Class<?>> facadeClzList = Stream.of(product.facades()).collect(Collectors.toList());
+                Set<Class<?>> facadeClzSet = new HashSet<>(facadeClzList);
+                if (facadeClzList.size() != facadeClzList.size()) {
+                    List<Class<?>> duplicatedClz = facadeClzSet.stream()
+                            .filter(f -> facadeClzList.indexOf(f) != facadeClzList.lastIndexOf(f))
                             .collect(Collectors.toList());
-                    String msg = clz + " is " + Annotations.PRODUCT + ", find duplicated class "+ duplicatedClz+" in its facade property";
+                    String msg = clz + " is " + Annotations.PRODUCT + ", find duplicated class " + duplicatedClz + " in its facade property";
                     LOGGER.error(msg);
                     throw new EnvironmentException(msg);
                 }
-                templateSpec2FacadeClz.put(productSpec,facadeClzSet);
+                templateSpec2FacadeClz.put(productSpec, facadeClzSet);
                 LOGGER.debug("find {} on class \"{}\"", Annotations.PRODUCT, clz);
             }
         }
@@ -375,9 +372,16 @@ public class PlainEnvironmentBuilder implements EnvironmentBuilder {
             Class<?> clz = e.getKey();
             Annotations annotations = e.getValue();
             ExtensionFacade extensionFacade = annotations.getExtensionFacade();
-            Set<ExtensionSpec> implementedExtensionSpecsInFacade = new HashSet<>();
+            Set<ExtensionSpec> satisfiedExtensionSpecsInFacade = new HashSet<>();
 
             if (extensionFacade != null) {
+
+                // ExtensionFacade must be valid
+                if (!AnnotationUtils.isValidExtensionFacade(clz)){
+                    String msg = clz + " is " + Annotations.EXTENSION_FACADE + ", but it is no valid bean class: (a public static class with public no-param constructor)";
+                    LOGGER.error(msg);
+                    throw new EnvironmentException(msg);
+                }
 
                 ExtensionFacadeSpec extensionFacadeSpec = new ExtensionFacadeSpec(clz.getName(), extensionFacade.name());
                 extensionFacadeSpec.setDescription(extensionFacade.desc());
@@ -399,7 +403,7 @@ public class PlainEnvironmentBuilder implements EnvironmentBuilder {
                         for (Class<?> itf : targets) {
                             if (clz2ExtensionSpec.containsKey(itf)) {
                                 ExtensionSpec implementedExtensionSpec = clz2ExtensionSpec.get(itf);
-                                if (!implementedExtensionSpecsInFacade.add(implementedExtensionSpec)) {
+                                if (!satisfiedExtensionSpecsInFacade.add(implementedExtensionSpec)) {
                                     String msg = clz + " is " + Annotations.EXTENSION_FACADE + ", and it satisfies " + Annotations.EXTENSION + " " + implementedExtensionSpec.getCode() + " more than once";
                                     LOGGER.error(msg);
                                     throw new EnvironmentException(msg);
@@ -420,7 +424,7 @@ public class PlainEnvironmentBuilder implements EnvironmentBuilder {
                             }
 
                             if (returnInstance == null) {
-                                String msg = method + " should return an implementation of  " + Annotations.EXTENSION + ", but it returns null.";
+                                String msg = method + " should return an implementation of  " + Annotations.EXTENSION + ", but it returns null. When use lambda, make sure you return \"()-> null\" instead of null in any implementations, especially in BlankFacade";
                                 LOGGER.error(msg);
                                 throw new EnvironmentException(msg);
                             }
@@ -436,11 +440,11 @@ public class PlainEnvironmentBuilder implements EnvironmentBuilder {
                 }
 
 
-                if (implementedExtensionSpecsInFacade.isEmpty()) {
-                    String msg = clz + " is " + Annotations.EXTENSION_FACADE + " but it does not implements any " + Annotations.EXTENSION;
-                    LOGGER.error(msg);
-                    throw new EnvironmentException(msg);
-                }
+//                if (satisfiedExtensionSpecsInFacade.isEmpty()) {
+//                    String msg = clz + " is " + Annotations.EXTENSION_FACADE + " but it does not implements any " + Annotations.EXTENSION;
+//                    LOGGER.error(msg);
+//                    throw new EnvironmentException(msg);
+//                }
 
                 clz2FacadeSpec.put(clz, extensionFacadeSpec);
                 LOGGER.debug("find {} on class \"{}\"", Annotations.EXTENSION_FACADE, clz);
@@ -519,16 +523,16 @@ public class PlainEnvironmentBuilder implements EnvironmentBuilder {
 
         for (TemplateSpec templateSpec : clz2TemplateSpec.values()) {
             // reset template.
-            for (Class<?> facadeClz:templateSpec2FacadeClz.get(templateSpec)){
-                ExtensionFacadeSpec extensionFacadeSpec= clz2FacadeSpec.get(facadeClz);
-                if (extensionFacadeSpec==null){
-                    String msg = templateSpec.getCode() + " use "+ facadeClz + " as facade, but it it not " + Annotations.EXTENSION_FACADE;
+            for (Class<?> facadeClz : templateSpec2FacadeClz.get(templateSpec)) {
+                ExtensionFacadeSpec extensionFacadeSpec = clz2FacadeSpec.get(facadeClz);
+                if (extensionFacadeSpec == null) {
+                    String msg = templateSpec.getCode() + " use " + facadeClz + " as facade, but it it not " + Annotations.EXTENSION_FACADE;
                     LOGGER.error(msg);
                     throw new EnvironmentException(msg);
                 }
 
-                extensionFacadeSpec.getExtension2Implementations().forEach((extension,implementation)->{
-                    templateSpec.getExtensions().computeIfAbsent(extension,k->new HashSet<>()).add(extensionFacadeSpec);
+                extensionFacadeSpec.getExtension2Implementations().forEach((extension, implementation) -> {
+                    templateSpec.getExtensions().computeIfAbsent(extension, k -> new HashSet<>()).add(extensionFacadeSpec);
                 });
 
             }

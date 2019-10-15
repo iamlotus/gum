@@ -21,10 +21,10 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
- * 从XML文件创建
+ * Construct {@link BusinessConfig} from XML file
  */
 public class XmlBusinessConfigBuilder implements BusinessConfigBuilder {
-    private static final Logger LOGGER = LoggerFactory.getLogger(PlainEnvironmentBuilder.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(XmlBusinessConfigBuilder.class);
 
     // express config in bean
     static class BusinessConfigXMLBean {
@@ -81,6 +81,10 @@ public class XmlBusinessConfigBuilder implements BusinessConfigBuilder {
             this.businessSpec = businessSpec;
         }
 
+        public Set<BusinessCode> getBusinessCodes(){
+            return this.businessCodes;
+        }
+
         @Override
         public Environment getParentEnvironment() {
             return environment;
@@ -90,6 +94,8 @@ public class XmlBusinessConfigBuilder implements BusinessConfigBuilder {
         public Set<ProductSpec> getProducts() {
             return productSpecs;
         }
+
+
 
         @Override
         public BusinessSpec getBusiness() {
@@ -113,7 +119,7 @@ public class XmlBusinessConfigBuilder implements BusinessConfigBuilder {
 
         @Override
         public String toString() {
-            return "[BusinessConfig " + businessSpec == null ? "" : businessSpec.getCode() + "]";
+            return "[BusinessConfig:range=" +businessCodes+ ", business="+ (businessSpec == null ? "" : businessSpec.getCode()) + "]";
         }
     }
 
@@ -163,12 +169,12 @@ public class XmlBusinessConfigBuilder implements BusinessConfigBuilder {
         }
 
         if (bean.businessCodes.isEmpty()) {
-            String msg = "must specify at least one BusinessCode";
+            String msg = "must specify at least one BusinessCode in BusinessConfig";
             LOGGER.error(msg);
             throw new BusinessConfigException(msg);
         }
 
-        String business = (String) xpath.evaluate("/BusinessConfig/Business/@code", doc, XPathConstants.STRING);
+        String business = (String) xpath.evaluate("/BusinessConfig/Business/@class", doc, XPathConstants.STRING);
         if (business == null) {
             String msg = "must specify code of Business";
             LOGGER.error(msg);
@@ -177,16 +183,16 @@ public class XmlBusinessConfigBuilder implements BusinessConfigBuilder {
         bean.business = business;
 
 
-        NodeList products = (NodeList) xpath.evaluate("/BusinessConfig/Products/Product/@code", doc, XPathConstants.NODESET);
+        NodeList products = (NodeList) xpath.evaluate("/BusinessConfig/Products/Product/@class", doc, XPathConstants.NODESET);
         for (int i = 0; i < products.getLength(); i++) {
             String product = products.item(i).getTextContent();
             if (product.isEmpty()) {
-                String msg = "find empty Product Code";
+                String msg = "find empty Product Class";
                 LOGGER.error(msg);
                 throw new BusinessConfigException(msg);
             }
             if (!bean.products.add(product)) {
-                String msg = "find duplicate Product Code:" + product;
+                String msg = "find duplicate Product Class:" + product;
                 LOGGER.error(msg);
                 throw new BusinessConfigException(msg);
             }
@@ -195,41 +201,41 @@ public class XmlBusinessConfigBuilder implements BusinessConfigBuilder {
         NodeList orderExtensions = (NodeList) xpath.evaluate("/BusinessConfig/Order/Extension", doc, XPathConstants.NODESET);
         for (int i = 0; i < orderExtensions.getLength(); i++) {
             Node extensionNode = orderExtensions.item(i);
-            String extensionCode = xpath.evaluate("./@code", extensionNode);
+            String extensionClass = xpath.evaluate("./@class", extensionNode);
 
-            if (extensionCode.isEmpty()) {
-                String msg = "find empty Extension Code";
+            if (extensionClass.isEmpty()) {
+                String msg = "find empty Extension Class";
                 LOGGER.error(msg);
                 throw new BusinessConfigException(msg);
             }
 
-            NodeList extensionFacadeCodes = (NodeList) xpath.evaluate("./ExtensionFacade/@code", extensionNode, XPathConstants.NODESET);
-            List<String> facadeCodes = new ArrayList<>();
-            for (int j = 0; j < extensionFacadeCodes.getLength(); j++) {
-                String code = extensionFacadeCodes.item(j).getTextContent();
-                if (code.isEmpty()) {
-                    String msg = "find empty ExtensionFacade Code";
+            NodeList extensionFacadeClasses = (NodeList) xpath.evaluate("./ExtensionFacade/@class", extensionNode, XPathConstants.NODESET);
+            List<String> facadeClasses = new ArrayList<>();
+            for (int j = 0; j < extensionFacadeClasses.getLength(); j++) {
+                String clz = extensionFacadeClasses.item(j).getTextContent();
+                if (clz.isEmpty()) {
+                    String msg = "find empty ExtensionFacade Class";
                     LOGGER.error(msg);
                     throw new BusinessConfigException(msg);
                 } else {
-                    facadeCodes.add(code);
+                    facadeClasses.add(clz);
                 }
             }
 
-            if (facadeCodes.isEmpty()) {
-                String msg = "find no ExtensionFacade Code for Extension " + extensionCode;
+            if (facadeClasses.isEmpty()) {
+                String msg = "no ExtensionFacade is specified for Extension " + extensionClass;
                 LOGGER.error(msg);
                 throw new BusinessConfigException(msg);
             }
 
-            if (new HashSet<>(facadeCodes).size() != facadeCodes.size()) {
-                String msg = "find duplicated ExtensionFacade Code for Extension " + extensionCode;
+            if (new HashSet<>(facadeClasses).size() != facadeClasses.size()) {
+                String msg = "duplicated ExtensionFacade are specified for Extension " + extensionClass;
                 LOGGER.error(msg);
                 throw new BusinessConfigException(msg);
             }
 
-            if (bean.getOrders().put(extensionCode, facadeCodes) != null) {
-                String msg = "find duplicated Extension Code " + extensionCode;
+            if (bean.getOrders().put(extensionClass, facadeClasses) != null) {
+                String msg = "duplicated Extension " + extensionClass;
                 LOGGER.error(msg);
                 throw new BusinessConfigException(msg);
             }
@@ -243,20 +249,20 @@ public class XmlBusinessConfigBuilder implements BusinessConfigBuilder {
 
         BusinessConfigImpl config = new BusinessConfigImpl();
 
-        config.environment = env;
-        config.businessCodes.addAll(bean.businessCodes.stream().map(BusinessCode::of).collect(Collectors.toSet()));
+        config.setEnvironment(env);
+        config.getBusinessCodes().addAll(bean.businessCodes.stream().map(BusinessCode::of).collect(Collectors.toSet()));
 
         Optional<BusinessSpec> business = env.getBusinesses().stream().filter(e -> e.getCode().equals(bean.business)).findFirst();
         if (!business.isPresent()) {
-            String msg = "can not find Business " + bean.business + " in environment";
+            String msg = "can not find Business " + bean.getBusiness() + " in environment";
             LOGGER.error(msg);
             throw new BusinessConfigException(msg);
         } else {
-            config.businessSpec = business.get();
+            config.setBusinessSpec(business.get());
         }
 
         Map<String, ProductSpec> products = env.getProducts().stream().collect(Collectors.toMap(Spec::getCode, Function.identity()));
-        bean.products.forEach(productCode -> {
+        bean.getProducts().forEach(productCode -> {
             ProductSpec product = products.get(productCode);
             if (product == null) {
                 String msg = "can not find Product " + productCode + " in environment";

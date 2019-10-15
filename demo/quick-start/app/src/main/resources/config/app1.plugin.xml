@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Plugin>
+    <name>app1 plugin name</name>
+
+    <description>app1 plugin description</description>
+
+    <!--all business codes can be parsed from code parser-->
+    <BusinessCodes>
+        <BusinessCode>app1.odd</BusinessCode>
+        <BusinessCode>app1.even</BusinessCode>
+    </BusinessCodes>
+
+    <BusinessCodeParser class="jinlo.gum.demo.quickstart.app.parser.App1BusinessCodeParser"/>
+</Plugin>

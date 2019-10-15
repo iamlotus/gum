@@ -1,24 +1,27 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!--for app1.odd-->
 <BusinessConfig>
+    <!--the business codes handled with the config-->
     <BusinessCodes>
         <BusinessCode>app3</BusinessCode>
     </BusinessCodes>
 
-    <!-- 有且只有一个业务 -->
-    <Business code="jinlo.gum.core.testapps.app3.B"/>
+    <!-- one and only one business -->
+    <Business class="jinlo.gum.core.testapps.app3.B"/>
 
     <Products>
-        <!-- 0-N个 产品 -->
-        <Product code="jinlo.gum.core.testapps.app3.P"/>
+        <!-- 0-N products -->
+        <Product class="jinlo.gum.core.testapps.app3.P"/>
     </Products>
 
-    <!--自定义扩展点实现的顺序，如果某个扩展点有超过一个实现，可以不指定顺序(默认随机)，但如果指定了顺序，必须指定所有实现的顺序
-     不允许出现仅仅指定若干实现的顺序。这里所有的实现必须位于其上指定的业务/产品中。-->
+    <!--
+    if an extension is satisfied by more than one extension facade, if you do not specify
+    order , it is ok (random order by default). But if you specify, you must specify orders of
+    all facades that satisfy the extension (partially specify is not allowed).
+    -->
     <Order>
-        <Extension code="jinlo.gum.core.testapps.app3.Ext1">
-            <ExtensionFacade code="jinlo.gum.core.testapps.app3.BFacade"/>
-            <ExtensionFacade code="jinlo.gum.core.testapps.app3.PFacade"/>
+        <Extension class="jinlo.gum.core.testapps.app3.Ext1">
+            <ExtensionFacade class="jinlo.gum.core.testapps.app3.BFacade"/>
+            <ExtensionFacade class="jinlo.gum.core.testapps.app3.PFacade"/>
         </Extension>
     </Order>
 </BusinessConfig>

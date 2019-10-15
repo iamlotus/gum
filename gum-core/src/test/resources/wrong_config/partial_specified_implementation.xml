@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--for app1.odd-->
-<BusinessTemplateConfig>
+<BusinessConfig>
     <BusinessCodes>
         <BusinessCode>sample.code1</BusinessCode>
     </BusinessCodes>
 
     <!--业务模板，必须有且只有一个 -->
-    <BusinessTemplate code="jinlo.gum.core.testapps.app1.business1.Business1"/>
+    <Business class="jinlo.gum.core.testapps.app1.business1.Business1"/>
 
     <Order>
-        <Extension code="jinlo.gum.core.testapps.app1.domain1.Ext11">
-            <ExtensionFacade code="jinlo.gum.core.testapps.app1.business1.B1Facade1"/>
-            <!--<ExtensionFacade code="B1Facade2"/>-->
+        <Extension class="jinlo.gum.core.testapps.app1.domain1.Ext11">
+            <ExtensionFacade class="jinlo.gum.core.testapps.app1.business1.B1Facade1"/>
+            <!--<ExtensionFacade class="B1Facade2"/>-->
         </Extension>
     </Order>
-</BusinessTemplateConfig>
+</BusinessConfig>

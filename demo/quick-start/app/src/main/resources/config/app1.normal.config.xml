@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<BusinessConfig>
+    <BusinessCodes>
+        <BusinessCode>app1.normal</BusinessCode>
+    </BusinessCodes>
+
+    <!-- one and only one business -->
+    <Business class="jinlo.gum.demo.quickstart.app.App1Business"/>
+
+    <Products>
+        <!-- 0-N products -->
+        <Product class="jinlo.gum.demo.quickstart.product1.MyProduct1"/>
+        <Product class="jinlo.gum.demo.quickstart.product2.MyProduct2"/>
+    </Products>
+
+    <!--
+        if an extension is satisfied by more than one extension facade, if you do not specify
+        order , it is ok (random order by default). But if you specify, you must specify orders of
+        all facades that satisfy the extension (partially specify is not allowed).
+    -->
+    <Order>
+        <Extension
+                class="jinlo.gum.demo.quickstart.domain.delivery.receive.extension.ReceiveMethodSelectorExtension">
+            <ExtensionFacade class="jinlo.gum.demo.quickstart.app.facades.App1DeliveryFacade"/>
+            <ExtensionFacade class="jinlo.gum.demo.quickstart.product1.facades.MyProduct1DeliveryFacade"/>
+            <ExtensionFacade class="jinlo.gum.demo.quickstart.product2.facades.MyProduct2DeliveryFacade"/>
+        </Extension>
+
+    </Order>
+</BusinessConfig>

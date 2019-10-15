@@ -1,8 +1,9 @@
 package jinlo.gum.core.runtime;
 
+import jinlo.gum.core.utils.AnnotationUtils;
 import org.junit.Test;
 
-import static jinlo.gum.core.utils.AnnotationUtils.isValidExtension;
+import static jinlo.gum.core.utils.AnnotationUtils.*;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
@@ -60,6 +61,36 @@ public class AnnotationUtilsTest {
         }
     }
 
+    static class F1{
+        // no public
+    }
+
+    public class F2{
+        // inner class
+    }
+
+    public static class F3{
+        // need default constructor
+
+        public F3(String s){
+
+        }
+
+    }
+
+    public static class F4{
+        // need public  constructor
+
+        private F4(){
+
+        }
+
+    }
+
+    public static class F5{
+
+    }
+
     @Test
     public void testIsValidExtension() {
         assertFalse(isValidExtension(C1.class));
@@ -71,6 +102,19 @@ public class AnnotationUtilsTest {
         assertTrue(isValidExtension(I5.class));
         assertFalse(isValidExtension(I6.class));
         assertFalse(isValidExtension(I7.class));
+    }
+
+    @Test
+    public void testIsValidExtensionFacade(){
+        assertFalse(isValidExtensionFacade(C1.class));
+        assertFalse(isValidExtensionFacade(C2.class));
+        assertFalse(isValidExtensionFacade(I1.class));
+        assertFalse(isValidExtensionFacade(F1.class));
+        assertFalse(isValidExtensionFacade(F2.class));
+        assertFalse(isValidExtensionFacade(F3.class));
+        assertFalse(isValidExtensionFacade(F4.class));
+        assertTrue(isValidExtensionFacade(F5.class));
+        assertTrue(isValidExtensionFacade(AnnotationUtilsTest.class));
     }
 
 }

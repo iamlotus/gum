@@ -296,7 +296,7 @@ public class ClassPath {
 
     @Override
     public String toString() {
-        return getClass().getSimpleName() + "[" + this.resources.size() + " resources, " + this.scannedUris.size() + " uris, cost" + scanTime + " ms]";
+        return getClass().getSimpleName() + "[" + this.resources.size() + " resources, " + this.scannedUris.size() + " uris, cost " + scanTime + " ms]";
     }
 
 

@@ -3,7 +3,6 @@ package jinlo.gum.core.spec;
 import jinlo.gum.core.model.InstanceRecgonizer;
 
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 

@@ -1,12 +1,11 @@
 package jinlo.gum.core.model;
 
+import jinlo.gum.core.annotation.Extension;
+
 import java.io.Serializable;
-import java.util.Collections;
 import java.util.Objects;
 import java.util.StringJoiner;
 import java.util.regex.Pattern;
-
-import jinlo.gum.core.annotation.Extension;
 
 /**
  * Business code is used to locate the implementations of {@link Extension} which has a hierarchical structure by dot to

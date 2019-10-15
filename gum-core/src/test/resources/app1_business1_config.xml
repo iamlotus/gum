@@ -1,34 +1,32 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!--for app1.odd-->
 <BusinessConfig>
+    <!--the business codes handled with the config-->
     <BusinessCodes>
         <BusinessCode>sample.code1</BusinessCode>
         <BusinessCode>sample.code2</BusinessCode>
     </BusinessCodes>
 
-    <!-- 有且只有一个业务 -->
-    <Business code="jinlo.gum.core.testapps.app1.business1.Business1"/>
+    <!-- one and only one business -->
+    <Business class="jinlo.gum.core.testapps.app1.business1.Business1"/>
 
     <Products>
-        <!-- 0-N个 产品 -->
-        <Product code="jinlo.gum.core.testapps.app1.product1.Product1"/>
-        <Product code="jinlo.gum.core.testapps.app1.product2.Product2"/>
+        <!-- 0-N products -->
+        <Product class="jinlo.gum.core.testapps.app1.product1.Product1"/>
+        <Product class="jinlo.gum.core.testapps.app1.product2.Product2"/>
     </Products>
 
-    <!--自定义扩展点实现的顺序，如果某个扩展点有超过一个实现，可以不指定顺序(默认随机)，但如果指定了顺序，必须指定所有实现的顺序
-     不允许出现仅仅指定若干实现的顺序。这里所有的实现必须位于其上指定的业务/产品中。-->
+    <!--
+    if an extension is satisfied by more than one extension facade, if you do not specify
+    order , it is ok (random order by default). But if you specify, you must specify orders of
+    all facades that satisfy the extension (partially specify is not allowed).
+    -->
     <Order>
-        <Extension code="jinlo.gum.core.testapps.app1.domain1.Ext11">
-            <ExtensionFacade code="jinlo.gum.core.testapps.app1.product1.P1Facade1"/>
-            <ExtensionFacade code="jinlo.gum.core.testapps.app1.product2.P2Facade1"/>
-            <ExtensionFacade code="jinlo.gum.core.testapps.app1.product2.P2Facade2"/>
-            <ExtensionFacade code="jinlo.gum.core.testapps.app1.business1.B1Facade1"/>
-            <ExtensionFacade code="jinlo.gum.core.testapps.app1.business1.B1Facade2"/>
+        <Extension class="jinlo.gum.core.testapps.app1.domain1.Ext11">
+            <ExtensionFacade class="jinlo.gum.core.testapps.app1.product1.P1Facade1"/>
+            <ExtensionFacade class="jinlo.gum.core.testapps.app1.product2.P2Facade1"/>
+            <ExtensionFacade class="jinlo.gum.core.testapps.app1.product2.P2Facade2"/>
+            <ExtensionFacade class="jinlo.gum.core.testapps.app1.business1.B1Facade1"/>
+            <ExtensionFacade class="jinlo.gum.core.testapps.app1.business1.B1Facade2"/>
         </Extension>
-
-        <!--<Extension code="Ext12">-->
-            <!--<ExtensionFacade code="P1Facade1"/>-->
-            <!--<ExtensionFacade code="B1Facade1"/>-->
-        <!--</Extension>-->
     </Order>
 </BusinessConfig>

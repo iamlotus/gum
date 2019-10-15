@@ -1,15 +1,12 @@
 package jinlo.gum.core.annotation;
 
-import jinlo.gum.core.ExtensionCallback;
-import jinlo.gum.core.reduce.Reducer;
 import jinlo.gum.core.reduce.Reducers;
+import jinlo.gum.core.runtime.BusinessProcesses;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-
-import jinlo.gum.core.runtime.BusinessProcesses;
 
 /**
  * Domain function, marks function that encapsulates invocation of {@link BusinessProcesses#executeExtension}, which

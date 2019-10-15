@@ -1,9 +1,9 @@
 package jinlo.gum.core.annotation;
 
 
+import jinlo.gum.core.model.BusinessCode;
 import jinlo.gum.core.model.BusinessCodeParser;
 import jinlo.gum.core.model.InstanceRecgonizer;
-import jinlo.gum.core.model.BusinessCode;
 import jinlo.gum.core.runtime.BusinessConfig;
 
 import java.lang.annotation.ElementType;
@@ -34,12 +34,6 @@ public @interface Business {
      * @return
      */
     String desc() default "";
-
-    /**
-     * business code parser
-     * @return
-     */
-    Class<? extends BusinessCodeParser> parser();
 
     /**
      * customized behaviors

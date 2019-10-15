@@ -150,9 +150,13 @@ public class Runtime {
 
     }
 
+    private Set<Plugin> plugins;
+
     private Set<BusinessConfig> businessConfigs;
 
-    public Runtime(Set<BusinessConfig> businessConfigs) {
+
+    public Runtime(Set<Plugin> plugins, Set<BusinessConfig> businessConfigs) {
+        this.plugins = plugins;
         this.businessConfigs = businessConfigs;
     }
 
@@ -164,47 +168,65 @@ public class Runtime {
      * @return
      */
     Target findBusinessConfigByInstance(Object instance) {
-        Set<BusinessConfig> knows = new HashSet<>();
+        Set<Plugin> pluginsKnowInstance = new HashSet<>();
 
-        for (BusinessConfig businessConfig : businessConfigs) {
+        for (Plugin plugin : plugins) {
             try {
-                if (businessConfig.getBusiness().getParser().knows(instance)) {
-                    knows.add(businessConfig);
+                if (plugin.getBusinessCodeParser().knows(instance)) {
+                    pluginsKnowInstance.add(plugin);
                 }
             } catch (Exception e) {
                 // if one business parser throws exception, it should not impact other business
-                LOGGER.warn(businessConfig.getBusiness().getCode() + " throws Exception when parse " + instance, e);
+                LOGGER.warn(plugin.getName() + " throws Exception when parse " + instance, e);
             }
         }
 
-        if (knows.isEmpty()) {
-            String msg = "no BusinessConfig knows instance " + instance;
+        if (pluginsKnowInstance.isEmpty()) {
+            String msg = "no Plugin knows instance " + instance + ", check your config";
             LOGGER.error(msg);
             throw new BusinessProcessException(msg);
         }
 
-        if (knows.size() > 1) {
-            String msg = "multiple BusinessConfig " + knows + " know source " + instance;
+        if (pluginsKnowInstance.size() > 1) {
+            String msg = "multiple Plugin " + pluginsKnowInstance + " know instance " + instance + ", check your config";
             LOGGER.error(msg);
             throw new BusinessProcessException(msg);
         }
 
-        BusinessConfig businessConfig = knows.iterator().next();
-        BusinessCode businessCode = businessConfig.getBusiness().getParser().parse(instance);
+        Plugin plugin = pluginsKnowInstance.iterator().next();
+        BusinessCode businessCode = plugin.getBusinessCodeParser().parse(instance);
 
         if (businessCode == null) {
-            String msg = businessConfig + "parse " + instance + " return null ";
+            String msg = plugin + "parse " + instance + "and return null";
             LOGGER.error(msg);
             throw new BusinessProcessException(msg);
         }
 
-        if (!businessConfig.knows(businessCode)) {
+        // businessCode has parsed from plugin, now choose config
+
+        Set<BusinessConfig> businessConfigsKnowBusinessCode = new HashSet<>();
+        for (BusinessConfig businessConfig : businessConfigs) {
+            if (businessConfig.knows(businessCode)) {
+                businessConfigsKnowBusinessCode.add(businessConfig);
+            }
+        }
+
+        if (businessConfigsKnowBusinessCode.isEmpty()) {
             // warning only by now, not restriction
-            String msg = businessConfig+" does not know " + businessCode+ " which is parsed from " + instance+" by itself";
+            String msg = "no BusinessConfig knows " + businessCode + ", check your config";
             LOGGER.error(msg);
             throw new BusinessProcessException(msg);
         }
 
+        if (businessConfigsKnowBusinessCode.size() > 1) {
+            // warning only by now, not restriction
+            String msg = "multiple BusinessConfigs: " + businessConfigsKnowBusinessCode + " knows " + businessCode + ", check your config";
+            LOGGER.error(msg);
+            throw new BusinessProcessException(msg);
+        }
+
+        // the only BusinessConfig knows the businessCode
+        BusinessConfig businessConfig = businessConfigsKnowBusinessCode.iterator().next();
         return new Target(businessCode, businessConfig);
     }
 

@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!--for app1.odd-->
 <BusinessConfig>
+    <!--the business codes handled with the config-->
     <BusinessCodes>
         <BusinessCode>app.sub</BusinessCode>
     </BusinessCodes>
 
-    <!--有且只有一个业务 -->
-    <Business code="jinlo.gum.core.testapps.app4.SubBusiness"/>
+    <!-- one and only one business -->
+    <Business class="jinlo.gum.core.testapps.app4.SubBusiness"/>
 </BusinessConfig>

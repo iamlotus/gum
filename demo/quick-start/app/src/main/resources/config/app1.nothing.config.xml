@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<BusinessConfig>
+    <BusinessCodes>
+        <BusinessCode>app1.nothing</BusinessCode>
+    </BusinessCodes>
+
+    <!-- one and only one business -->
+    <Business class="jinlo.gum.demo.quickstart.app.App2Business"/>
+
+</BusinessConfig>

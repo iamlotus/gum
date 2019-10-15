@@ -2,9 +2,7 @@ package jinlo.gum.core.spec;
 
 
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 
 public class ExtensionFacadeSpec extends Spec {
 

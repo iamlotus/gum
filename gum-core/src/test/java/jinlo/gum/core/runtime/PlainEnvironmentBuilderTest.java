@@ -112,14 +112,12 @@ public class PlainEnvironmentBuilderTest {
         assertEquals(Business1.class.getName(), business1.getCode());
         assertEquals("业务1", business1.getName());
         assertEquals("desc1", business1.getDescription());
-        assertEquals(Business1CodeParser.class, business1.getParser().getClass());
         assertEquals(InstanceRecgonizer.PositiveRecgonizer.class, business1.getRecgonizer().getClass());
 
         BusinessSpec business2 = businesses.get(1);
         assertEquals(Business2.class.getName(), business2.getCode());
         assertEquals(business2.getCode(), business2.getName());
         assertEquals("", business2.getDescription());
-        assertEquals(Business2CodeParser.class, business2.getParser().getClass());
         assertEquals(Business2.FalseChecker.class, business2.getRecgonizer().getClass());
 
         // business extensions
